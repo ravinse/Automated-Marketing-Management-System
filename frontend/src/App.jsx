@@ -1,42 +1,39 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Campaign from './Marketingmanager/Campaign';
-import CampaignView from './Marketingmanager/Campaignview';
-import Campaignreview from './Marketingmanager/Campaignreview';
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import Login from "./Login/Login";
+import Register from "./Login/Register";
+import Forgotpass from "./Login/Forgotpass";
+import Changepass from "./Login/Changepass";
+import Checkmail from "./Login/Checkmail";
+import Changesucc from "./Login/NewPass";
+import NewPass from "./Login/NewPass";
+// Dashboard
+import AdminDashboard from "./admin/admindashboard";
+import MarketingMDash from "./manager/MarketingMDash";
+import OwnerDash from "./owner/homepage/OwnerDash";
+import TeamMDash from "./team member/TeamMOverview/Home";
 
-import Performanceoverview from './Marketingmanager/Performanceoverview';
-import Home from './Teammember/Home';
-import Homen from './Teammember/newcampaing/CampaignCreationt';
-import Homeo from './Teammember/Campaign Overview/Homeo';
-import CampaignCreation from './Marketingmanager/CampaignCreation';
-import AHome from './admin/AHome';
-import Campaign_management from './admin/Campaign_management';
-import Performance_dashboardm from './Marketingmanager/Perfomance_dashboardm';
-import Feedback1 from './Marketingmanager/Feedback1.jsx';
-
-
-
-
-const App = () => {
+function App() {
   return (
-    <Router>
+    <div className="App">
       <Routes>
-        <Route path="/Campaign" element={<Campaign/>} /> 
-        <Route path="/campaignview" element={<CampaignView/>} />
-       <Route path="/campaignreview" element={<Campaignreview/>} />
-       <Route path="/performanceoverview" element={<Performanceoverview/>} />
-       <Route path="/thome" element={<Home/>} />
-     <Route path="/newcampaign" element={<Homen/>} />
-     <Route path="/Homeoverview" element={<Homeo/>} />
-     <Route path="/campaigncreation" element={<CampaignCreation/>} />
-     <Route path="/AHome" element={<AHome/>} />
-    <Route path="/Campaign_management" element={<Campaign_management/>}/>
-    <Route path="/" element={<Performance_dashboardm />} />
-    <Route path="/CampaignCreationt" element={<CampaignCreation />} />  
-  <Route path="/Feedback" element={<Feedback1 />} />
+        <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgotpass" element={<Forgotpass />} />
+        <Route path="/changepass" element={<Changepass />} />
+        <Route path="/checkmail" element={<Checkmail />} />
+        <Route path="/changesucc" element={<Changesucc />} />
+
+          {/* Dashboard Routes */}
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/manager" element={<MarketingMDash />} />
+        <Route path="/owner" element={<OwnerDash />} />
+        <Route path="/team" element={<TeamMDash />} />
+        <Route path="/reset-password/:token" element={<NewPass />} />
+
       </Routes>
-    </Router>
+    </div>
   );
-};
+}
 
 export default App;

@@ -1,6 +1,5 @@
 import React from 'react'
 import { Button } from "@material-tailwind/react";
-import {Link} from 'react-router-dom'
 
 const PendingApproval = () => {
   return (
@@ -55,9 +54,9 @@ const PendingApproval = () => {
                 <button className="px-5 py-2 rounded-full bg-gray-100 text-gray-800 font-normal hover:bg-gray-200 transition">
                   Approve
                 </button>
-                <Link to="/campaignreview"><button className="px-5 py-2 rounded-full bg-gray-100 text-gray-800 font-normal hover:bg-gray-200 transition">
+                <button className="px-5 py-2 rounded-full bg-gray-100 text-gray-800 font-normal hover:bg-gray-200 transition">
                   view
-                </button></Link>
+                </button>
             </td>
         </tr>
         <tr class="hover:bg-slate-50">
@@ -80,9 +79,9 @@ const PendingApproval = () => {
                 <button className="px-5 py-2 rounded-full bg-gray-100 text-gray-800 font-normal hover:bg-gray-200 transition">
                   Approve
                 </button>
-                <Link to="/campaignreview"><button className="px-5 py-2 rounded-full bg-gray-100 text-gray-800 font-normal hover:bg-gray-200 transition">
+                <button className="px-5 py-2 rounded-full bg-gray-100 text-gray-800 font-normal hover:bg-gray-200 transition">
                   view
-                </button></Link>
+                </button>
             </td>
         </tr>
         <tr class="hover:bg-slate-50">
@@ -105,9 +104,9 @@ const PendingApproval = () => {
                 <button className="px-5 py-2 rounded-full bg-gray-100 text-gray-800 font-normal hover:bg-gray-200 transition">
                   Approve
                 </button>
-             <Link to="/campaignreview"> <button className="px-5 py-2 rounded-full bg-gray-100 text-gray-800 font-normal hover:bg-gray-200 transition">
+                <button className="px-5 py-2 rounded-full bg-gray-100 text-gray-800 font-normal hover:bg-gray-200 transition">
                   view
-                </button></Link>
+                </button>
             </td>
         </tr>
     </tbody>
