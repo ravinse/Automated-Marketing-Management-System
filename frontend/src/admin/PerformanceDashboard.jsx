@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, TrendingUp, Users, MousePointer, DollarSign } from 'lucide-react';
 
 
-const Table = () => {
+const AdminPerformanceDashboard = () => {
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const campaigns = [
@@ -345,4 +345,4 @@ const Table = () => {
   );
 };
 
-export default Table;
+export default AdminPerformanceDashboard;

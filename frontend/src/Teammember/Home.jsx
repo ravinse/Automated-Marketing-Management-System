@@ -1,5 +1,5 @@
 import React from 'react'
-import Navbar from './Navbart';
+import TeamMemberNavbar from './TeamMemberNavbar';
 import Header from './Header';
 import Drafted from './Drafted';
 import SentForApproval from './Sentapproval';
@@ -10,7 +10,7 @@ import Finished from './Finished';
 const Home = () => {
   return (
     <div>
-        <Navbar />
+        <TeamMemberNavbar />
         <Header />
         <Drafted />
         <SentForApproval />

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { X, TrendingUp, Users, MousePointer, DollarSign } from 'lucide-react';
-import Navbarm from './Navbarm';
+import MarketingManagerNavbar from './MarketingManagerNavbar';
 
 
-const Performance_dashboardm = () => {
+const PerformanceDashboard = () => {
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const campaigns = [
@@ -117,7 +117,7 @@ const Performance_dashboardm = () => {
 
   return (
     
-    <div className="bg-gray-50 px-6 pb-8"><Navbarm/>
+    <div className="bg-gray-50 px-6 pb-8"><MarketingManagerNavbar/>
       <div className="max-w-7xl mx-auto">
         {/* Table Section Header */}
         <div className='mb-6'><h1 className='text-2xl font-bold text-gray-900'>Campaign Performance</h1></div>
@@ -368,4 +368,4 @@ const Performance_dashboardm = () => {
   );
 };
 
-export default Performance_dashboardm;
+export default PerformanceDashboard;

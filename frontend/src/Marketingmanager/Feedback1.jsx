@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, ChevronDown, ChevronLeft, ChevronRight, Star } from 'lucide-react';
-import Navbarm from "./Navbarm";
+import MarketingManagerNavbar from "./MarketingManagerNavbar";
 
 // Rating Overview Component
 const RatingOverview = ({ rating, totalReviews, ratingData }) => {
@@ -66,15 +66,43 @@ const FeedbackItem = ({ feedback }) => {
 const Pagination = ({ currentPage, onPageChange }) => {
   return (
     <div className="flex items-center justify-center space-x-2 mt-8 pt-6 border-t border-gray-200">
-      <button className="p-2 text-gray-400 hover:text-gray-600">
+      <button 
+        className="p-2 text-gray-400 hover:text-gray-600"
+        onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+        disabled={currentPage <= 1}
+      >
         <ChevronLeft className="w-5 h-5" />
       </button>
-      <button className="px-3 py-2 text-sm font-medium bg-gray-900 text-white rounded-md">1</button>
-      <button className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md">2</button>
-      <button className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md">3</button>
+      <button 
+        className={`px-3 py-2 text-sm font-medium rounded-md ${currentPage === 1 ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+        onClick={() => onPageChange(1)}
+      >
+        1
+      </button>
+      <button 
+        className={`px-3 py-2 text-sm font-medium rounded-md ${currentPage === 2 ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+        onClick={() => onPageChange(2)}
+      >
+        2
+      </button>
+      <button 
+        className={`px-3 py-2 text-sm font-medium rounded-md ${currentPage === 3 ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+        onClick={() => onPageChange(3)}
+      >
+        3
+      </button>
       <span className="px-2 text-gray-500">...</span>
-      <button className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md">10</button>
-      <button className="p-2 text-gray-600 hover:text-gray-800">
+      <button 
+        className={`px-3 py-2 text-sm font-medium rounded-md ${currentPage === 10 ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+        onClick={() => onPageChange(10)}
+      >
+        10
+      </button>
+      <button 
+        className="p-2 text-gray-600 hover:text-gray-800"
+        onClick={() => currentPage < 10 && onPageChange(currentPage + 1)}
+        disabled={currentPage >= 10}
+      >
         <ChevronRight className="w-5 h-5" />
       </button>
     </div>
@@ -174,7 +202,7 @@ const FeedbackDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbarm/>
+      <MarketingManagerNavbar/>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}

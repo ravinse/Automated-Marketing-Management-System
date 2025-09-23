@@ -3,7 +3,7 @@ import PendingApproval from '../Tables/PendingApproval.jsx';
 import Running from '../Tables/Running.jsx'
 import Completed from '../Tables/Completed.jsx';
 import { Link } from 'react-router-dom';
-import Navbarm from './Navbarm.jsx';
+import MarketingManagerNavbar from './MarketingManagerNavbar.jsx';
 
 
 const Campaign = () => {
@@ -12,7 +12,7 @@ const Campaign = () => {
   return (
     <div className='min-h-screen'>
       <div>
-        <Navbarm />
+        <MarketingManagerNavbar />
       </div>
       <div className="flex flex-row p-4">
        <div> <h1 className="text-2xl font-bold ml-64 mt-7">Campaigns</h1></div>

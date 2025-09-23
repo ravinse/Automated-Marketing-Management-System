@@ -1,11 +1,11 @@
 import React from 'react'
-import Campaingdate from '../Tables/Campaingdate.jsx'
-import Navbarm from './Navbarm.jsx'
+import CampaignDate from '../Tables/CampaignDate.jsx'
+import MarketingManagerNavbar from './MarketingManagerNavbar.jsx'
 
 const Campaignreview = () => {
   return (
     <div>
-      <Navbarm />
+      <MarketingManagerNavbar />
       <div >
         <div className='flex flex-col w-3/4 h-auto p-4 mx-20'>
             <h1 className='text-black text-[32px] font-bold'>Campaign Review</h1>
@@ -43,7 +43,7 @@ const Campaignreview = () => {
                           className="w-1/3 h-32 px-3 py-2 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500">@#$%^&*dfghjkertyuivbnm,</div>
                         </div>
                         <div className='mt-5'><h1>Resubmission Deadline</h1></div>
-                       <div><Campaingdate/></div>
+                       <div><CampaignDate/></div>
                       <div className='flex gap-4 w-auto mt-3'> 
                         <button type="submit" className="w-1/12 bg-blue-400 text-white rounded-3xl hover:bg-blue-300">Approve</button>
                         <button type="submit" className='w-1/12 bg-blue-400 text-white rounded-3xl hover:bg-blue-300'>Reject</button>

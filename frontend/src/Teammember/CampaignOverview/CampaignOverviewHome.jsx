@@ -1,5 +1,5 @@
 import React from 'react'
-import Navbart from '../Navbart'
+import TeamMemberNavbar from '../TeamMemberNavbar'
 import Header from './Header';
 import Content from './Content';
 import Buttons from './Button';
@@ -9,7 +9,7 @@ import Buttons from './Button';
 const Homeo = () => {
   return (
     <div>
-        <Navbart />
+        <TeamMemberNavbar />
         <Header />
         <Content />
         <Buttons />

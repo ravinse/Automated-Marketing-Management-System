@@ -13,7 +13,7 @@ import {
   User,
   ChevronDown,
 } from 'lucide-react';
-import Navbarm from './Navbarm';
+import MarketingManagerNavbar from './MarketingManagerNavbar';
 
 // Mock data for the performance charts
 const performanceData = [
@@ -59,7 +59,7 @@ export default function App() {
 
   return (
     <div className="bg-gray-100 min-h-screen font-sans antialiased text-gray-800">
-      <Navbarm />
+      <MarketingManagerNavbar />
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

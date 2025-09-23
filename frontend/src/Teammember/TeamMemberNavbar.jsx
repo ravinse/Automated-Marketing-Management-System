@@ -1,9 +1,10 @@
 import React from 'react'
+import { ImageUp } from 'lucide-react'
 import Logo from '../assets/logo.png'
 import profile from '../assets/profile.png'
 import search from '../assets/search.png'
 
-const Navbar7 = () => {
+const TeamMemberNavbar = () => {
   return (
     <div className='w-full border-b-2 p-3 border-gray-200 flex bg-white'>
       <img src={Logo} alt="logo" className='w-14 h-8 ml-4 mt-2' />
@@ -11,8 +12,7 @@ const Navbar7 = () => {
       <nav className="flex sm:justify-center space-x-4">
         {
             [
-                ['Dashboard', '/'],
-                ['Campaigns', '/'],
+                ['Dashboard', '/thome'],
                 ['Templates', '/'],
                 ['Performance', '/'],
                ['Feedback', '/'],
@@ -34,4 +34,4 @@ const Navbar7 = () => {
   )
 }
 
-export default Navbar7
+export default TeamMemberNavbar

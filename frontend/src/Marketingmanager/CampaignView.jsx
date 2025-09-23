@@ -1,12 +1,12 @@
 import React from 'react'
 import Running from '../Tables/Running'
 import Completed from '../Tables/Completed'
-import Navbarm from './Navbarm'
+import MarketingManagerNavbar from './MarketingManagerNavbar'
 
 const CampaignView = () => {
   return (
     <div>
-      <Navbarm />
+      <MarketingManagerNavbar />
       <div>
         <h3 className="text-xl font-bold ml-52 mt-6 text-slate-800">Campaigns</h3>
       </div>

@@ -1,13 +1,12 @@
 import React from 'react'
-import Navbar from './Navbar7.jsx';
-
-import Perfomace_dashboard from './Perfomance_dashboard.jsx';
+import AdminNavbar from './AdminNavbar.jsx';
+import AdminPerformanceDashboard from './PerformanceDashboard.jsx';
 
 const AHome = () => {
   return (
     <div>
-        <Navbar/>
-        <Perfomace_dashboard/>
+        <AdminNavbar/>
+        <AdminPerformanceDashboard/>
     </div>
   )
 }

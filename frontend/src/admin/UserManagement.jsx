@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Navbar from './Navbar7.jsx';
+import AdminNavbar from './AdminNavbar.jsx';
 
 // Add New User Button Component
 const AddNewUserButton = ({ onClick }) => {
@@ -340,11 +340,13 @@ const UserManagement = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-        <AddNewUserButton onClick={handleAddNewUser} />
-      </div>
+    <>
+      <AdminNavbar />
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+          <AddNewUserButton onClick={handleAddNewUser} />
+        </div>
       
       <UserTable 
         users={users}
@@ -360,7 +362,8 @@ const UserManagement = () => {
         editUser={editingUser}
         isEditing={isEditing}
       />
-    </div>
+      </div>
+    </>
   );
 };
 

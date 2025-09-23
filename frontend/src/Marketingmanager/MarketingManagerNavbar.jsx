@@ -3,7 +3,7 @@ import Logo from '../assets/logo.png'
 import profile from '../assets/profile.png'
 import search from '../assets/search.png'
 
-const Navbarm = () => {
+const MarketingManagerNavbar = () => {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -86,4 +86,4 @@ const Navbarm = () => {
   )
 }
 
-export default Navbarm
+export default MarketingManagerNavbar
