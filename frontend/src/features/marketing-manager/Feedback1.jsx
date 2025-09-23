@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, ChevronDown, ChevronLeft, ChevronRight, Star } from 'lucide-react';
-import MarketingManagerNavbar from "./MarketingManagerNavbar";
+import MarketingManagerNavbar from "../../components/navigation/MarketingManagerNavbar";
 
 // Rating Overview Component
 const RatingOverview = ({ rating, totalReviews, ratingData }) => {

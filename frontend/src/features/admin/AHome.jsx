@@ -1,5 +1,5 @@
 import React from 'react'
-import AdminNavbar from './AdminNavbar.jsx';
+import AdminNavbar from '../../components/navigation/AdminNavbar.jsx';
 import AdminPerformanceDashboard from './PerformanceDashboard.jsx';
 
 const AHome = () => {

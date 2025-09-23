@@ -1,7 +1,7 @@
 import React from 'react'
-import Running from '../Tables/Running'
-import Completed from '../Tables/Completed'
-import MarketingManagerNavbar from './MarketingManagerNavbar'
+import Running from '../../Tables/Running'
+import Completed from '../../Tables/Completed'
+import MarketingManagerNavbar from '../../components/navigation/MarketingManagerNavbar'
 
 const CampaignView = () => {
   return (

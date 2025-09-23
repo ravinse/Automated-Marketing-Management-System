@@ -1,5 +1,5 @@
 import React from 'react'
-import TeamMemberNavbar from './TeamMemberNavbar';
+import TeamMemberNavbar from '../../components/navigation/TeamMemberNavbar';
 import Header from './Header';
 import Drafted from './Drafted';
 import SentForApproval from './Sentapproval';

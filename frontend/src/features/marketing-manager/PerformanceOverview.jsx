@@ -13,7 +13,7 @@ import {
   User,
   ChevronDown,
 } from 'lucide-react';
-import MarketingManagerNavbar from './MarketingManagerNavbar';
+import MarketingManagerNavbar from '../../components/navigation/MarketingManagerNavbar';
 
 // Mock data for the performance charts
 const performanceData = [

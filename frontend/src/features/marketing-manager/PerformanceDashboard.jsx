@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, TrendingUp, Users, MousePointer, DollarSign } from 'lucide-react';
-import MarketingManagerNavbar from './MarketingManagerNavbar';
+import MarketingManagerNavbar from '../../components/navigation/MarketingManagerNavbar';
 
 
 const PerformanceDashboard = () => {

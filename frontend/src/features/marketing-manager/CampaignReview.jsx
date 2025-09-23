@@ -1,6 +1,6 @@
 import React from 'react'
-import CampaignDate from '../Tables/CampaignDate.jsx'
-import MarketingManagerNavbar from './MarketingManagerNavbar.jsx'
+import CampaignDate from '../../Tables/CampaignDate.jsx'
+import MarketingManagerNavbar from '../../components/navigation/MarketingManagerNavbar.jsx'
 
 const Campaignreview = () => {
   return (

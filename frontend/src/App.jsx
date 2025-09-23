@@ -1,17 +1,17 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Campaign from './Marketingmanager/Campaign';
-import CampaignView from './Marketingmanager/CampaignView';
-import CampaignReview from './Marketingmanager/CampaignReview';
-import PerformanceOverview from './Marketingmanager/PerformanceOverview';
-import Home from './Teammember/Home';
-import CampaignCreationTeam from './Teammember/NewCampaign/CampaignCreation';
-import CampaignOverviewHome from './Teammember/CampaignOverview/CampaignOverviewHome';
-import CampaignCreation from './Marketingmanager/CampaignCreation';
-import AHome from './admin/AHome';
-import CampaignManagement from './admin/CampaignManagement';
-import PerformanceDashboard from './Marketingmanager/PerformanceDashboard';
-import Feedback1 from './Marketingmanager/Feedback1.jsx';
+import Campaign from './features/marketing-manager/Campaign';
+import CampaignView from './features/marketing-manager/CampaignView';
+import CampaignReview from './features/marketing-manager/CampaignReview';
+import PerformanceOverview from './features/marketing-manager/PerformanceOverview';
+import Home from './features/team-member/Home';
+import CampaignCreationTeam from './features/team-member/NewCampaign/CampaignCreation';
+import CampaignOverviewHome from './features/team-member/CampaignOverview/CampaignOverviewHome';
+import CampaignCreation from './features/marketing-manager/CampaignCreation';
+import AHome from './features/admin/AHome';
+import CampaignManagement from './features/admin/CampaignManagement';
+import PerformanceDashboard from './features/marketing-manager/PerformanceDashboard';
+import Feedback1 from './features/marketing-manager/Feedback1.jsx';
 
 
 

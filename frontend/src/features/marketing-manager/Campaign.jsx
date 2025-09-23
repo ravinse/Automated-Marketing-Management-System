@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import PendingApproval from '../Tables/PendingApproval.jsx';
-import Running from '../Tables/Running.jsx'
-import Completed from '../Tables/Completed.jsx';
+import PendingApproval from '../../Tables/PendingApproval.jsx';
+import Running from '../../Tables/Running.jsx'
+import Completed from '../../Tables/Completed.jsx';
 import { Link } from 'react-router-dom';
-import MarketingManagerNavbar from './MarketingManagerNavbar.jsx';
+import MarketingManagerNavbar from '../../components/navigation/MarketingManagerNavbar.jsx';
 
 
 const Campaign = () => {

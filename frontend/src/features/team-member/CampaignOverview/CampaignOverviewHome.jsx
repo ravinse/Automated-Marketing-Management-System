@@ -1,5 +1,5 @@
 import React from 'react'
-import TeamMemberNavbar from '../TeamMemberNavbar'
+import TeamMemberNavbar from '../../../components/navigation/TeamMemberNavbar'
 import Header from './Header';
 import Content from './Content';
 import Buttons from './Button';

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import AdminNavbar from './AdminNavbar.jsx';
+import AdminNavbar from '../../components/navigation/AdminNavbar.jsx';
 
 // Add New User Button Component
 const AddNewUserButton = ({ onClick }) => {
