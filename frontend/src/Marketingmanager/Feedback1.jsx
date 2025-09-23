@@ -125,7 +125,7 @@ const RecentFeedback = ({ feedbackData, currentPage, onPageChange }) => {
 };
 
 // Main Dashboard Component
-const FeedbackDashboard = () => {
+const Feedback1 = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Sample data
@@ -203,4 +203,4 @@ const FeedbackDashboard = () => {
   );
 };
 
-export default FeedbackDashboard;
+export default Feedback1;
