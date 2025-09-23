@@ -11,16 +11,28 @@ const router = express.Router();
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
+  console.log("🔍 Login attempt:", { email, password: password ? "[HIDDEN]" : "empty" });
+
   try {
     // find by email OR username
     const user = await User.findOne({
       $or: [{ email: req.body.email }, { username: req.body.email }]
     });
 
-    if (!user) return res.status(400).json({ error: "Invalid email/username or password" });
+    console.log("🔍 User found:", user ? `${user.email} (${user.role})` : "No user found");
+
+    if (!user) {
+      console.log("❌ Login failed: User not found");
+      return res.status(400).json({ error: "Invalid email/username or password" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ error: "Invalid email/username or password" });
+    console.log("🔍 Password match:", isMatch ? "Yes" : "No");
+
+    if (!isMatch) {
+      console.log("❌ Login failed: Password mismatch");
+      return res.status(400).json({ error: "Invalid email/username or password" });
+    }
 
     // issue JWT
     const token = jwt.sign(
@@ -28,6 +40,8 @@ router.post("/login", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
+
+    console.log(`✅ User logged in: ${user.email}, ${user.role}`);
 
     res.json({
       token,
@@ -39,8 +53,8 @@ router.post("/login", async (req, res) => {
         role: user.role,
       },
     });
-    console.log(`✅ User logged in: ${user.email}, ${user.role}`);
   } catch (err) {
+    console.error("❌ Login error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });

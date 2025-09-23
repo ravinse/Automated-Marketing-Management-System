@@ -8,7 +8,7 @@ import Checkmail from "./Login/Checkmail";
 import Changesucc from "./Login/NewPass";
 import NewPass from "./Login/NewPass";
 // Dashboard
-import AdminDashboard from "./admin/admindashboard";
+import AdminDashboard from "./admin/AdminDashboard";
 import MarketingMDash from "./manager/MarketingMDash";
 import OwnerDash from "./owner/homepage/OwnerDash";
 import TeamMDash from "./team member/TeamMOverview/Home";
@@ -27,6 +27,9 @@ function App() {
           {/* Dashboard Routes */}
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/manager" element={<MarketingMDash />} />
+        <Route path="/manager/templates" element={<MarketingMDash />} />
+        <Route path="/manager/reports" element={<MarketingMDash />} />
+        <Route path="/manager/audience" element={<MarketingMDash />} />
         <Route path="/owner" element={<OwnerDash />} />
         <Route path="/team" element={<TeamMDash />} />
         <Route path="/reset-password/:token" element={<NewPass />} />

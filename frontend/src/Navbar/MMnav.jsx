@@ -11,11 +11,11 @@ const Navbar7 = () => {
       <nav className="flex sm:justify-center space-x-4">
         {
             [
-                ['Dashboard', '/'],
-                ['Campaigns', '/'],
-                ['Templates', '/'],
-                ['Reports', '/'],
-                ['Audience', '/'],
+                ['Dashboard', '/manager'],
+                ['Campaigns', '/manager'],
+                ['Templates', '/manager/templates'],
+                ['Reports', '/manager/reports'],
+                ['Audience', '/manager/audience'],
             ].map(([title, url]) => (
                 <a href={url} key={title} className="rounded-lg px-3 py-2 text-slate-700 font-medium hover:bg-slate-100 hover:text-slate-900">
                     {title}</a>
