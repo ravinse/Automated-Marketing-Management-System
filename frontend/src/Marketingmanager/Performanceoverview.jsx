@@ -46,7 +46,7 @@ const MetricCard = ({ title, value, change, changeColor }) => (
 );
 
 // The main application component
-export default function App() {
+export default function Performanceoverview() {
   const primaryColor = '#4c51bf'; // A nice purple color for the dashboard accents
 
   // Data for the main metric cards
