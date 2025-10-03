@@ -11,8 +11,8 @@ const UserSchema = new mongoose.Schema({
     enum: ["admin", "team member", "manager", "owner"],
     default: "team member",
   },
-  resetPasswordToken:{type:String}, //reset password token
-  resetPasswordExpire:{type:Date}, //token expire time
+  resetPasswordToken:String, //reset password token
+  resetPasswordExpire:Date, //token expire time
 });
 
 UserSchema.methods.matchPassword = async function (enteredPassword) {

@@ -6,15 +6,21 @@ import API from '../api/';
 const Forgotpass = () => {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setMessage("");
+    // call backend
     try {
-      const res = await API.post("/auth/forgot-password", { email });
-      setMessage(`✅ Reset token sent! (Dev mode: ${res.data.resetToken})`);
+      await API.post("/auth/forgot-password", { email });
+      setMessage(`Reset token sent!`);
       // 👉 In production, token ekak email ekata yanawa
     } catch (err) {
       setMessage("❌ " + (err.response?.data?.error || "Something went wrong"));
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -48,10 +54,15 @@ const Forgotpass = () => {
               </div>
               <button
                 type="submit"
-                className="w-full bg-[#C7F5EE] text-black py-2 rounded-md hover:bg-[#c7f5eeb4]"
-              >
-                Reset Password   
-              </button>
+              disabled={loading} // 🔒 disable button while loading
+              className={`w-full py-2 rounded-md ${
+                loading
+                  ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                  : "bg-[#C7F5EE] text-black hover:bg-[#c7f5eeb4]"
+              }`}
+            >
+              {loading ? "Sending..." : "Reset Password"} {/* 🔄 dynamic text */}
+            </button>
             </form>
             {message && (
               <div className="mt-4 text-center text-sm text-gray-700">
