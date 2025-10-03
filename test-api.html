@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Connectivity Test</h1>
+    <button onclick="testAPI()">Test Backend Connection</button>
+    <button onclick="testLogin()">Test Login</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const result = document.getElementById('result');
+            try {
+                const response = await fetch('http://localhost:5000/');
+                const text = await response.text();
+                result.innerHTML = `<p style="color: green;">✅ Backend connection successful: ${text}</p>`;
+            } catch (error) {
+                result.innerHTML = `<p style="color: red;">❌ Backend connection failed: ${error.message}</p>`;
+            }
+        }
+
+        async function testLogin() {
+            const result = document.getElementById('result');
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'lakshan',
+                        password: 'lakshan123'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    result.innerHTML = `<p style="color: green;">✅ Login successful! User: ${data.user.name} (${data.user.role})</p>`;
+                } else {
+                    const error = await response.text();
+                    result.innerHTML = `<p style="color: red;">❌ Login failed: ${error}</p>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<p style="color: red;">❌ Login request failed: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -13,9 +13,12 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("🔍 Attempting login with:", form);
+    console.log("🔍 API base URL:", API.defaults.baseURL);
+    
     try {
       const res = await API.post("/auth/login", form);
-      console.log("backend response:", res.data);
+      console.log("✅ Backend response:", res.data);
       localStorage.setItem("token", res.data.token); // Save JWT
       localStorage.setItem("role", res.data.user.role); // Save user role
       alert("Login successful!");
@@ -37,8 +40,11 @@ const Login = () => {
           navigate('/home');
       }
     } catch (err) {
-      console.error("login error:", err.response?.data);
-      alert("Error: " + (err.response?.data?.error || "Login failed"));
+      console.error("❌ Login error:", err);
+      console.error("❌ Error response:", err.response?.data);
+      console.error("❌ Error status:", err.response?.status);
+      console.error("❌ Error config:", err.config);
+      alert("Error: " + (err.response?.data?.error || err.message || "Login failed"));
     }
   };
   
