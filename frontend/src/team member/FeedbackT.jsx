@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Search, ChevronDown, ChevronLeft, ChevronRight, Star } from 'lucide-react';
-import Navbarm from "./Navbarm";
+import Navbart from "./Navbart";
 
-// API Configuration - Use the same backend as Team Member feedback
+// API Configuration
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 // Rating Overview Component
@@ -164,40 +164,41 @@ const Feedback1 = () => {
     fetchFeedbacks(currentPage, filters);
   }, [currentPage, filters]);
 
+  // Fetch overview/statistics from API
   const fetchOverview = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/feedback/overview`);
-      if (!res.ok) throw new Error('Failed to load overview');
-      const data = await res.json();
-      setOverview({
-        averageRating: data.averageRating || 0,
-        totalReviews: data.totalReviews || 0,
-        distribution: data.distribution || []
-      });
+      const response = await fetch(`${API_URL}/feedback/overview`);
+      if (!response.ok) throw new Error('Failed to fetch overview');
+      const data = await response.json();
+      setOverview(data);
       setError(null);
     } catch (err) {
       console.error('Error fetching overview:', err);
       setError('Failed to load feedback overview');
+      // Set default values on error
+      setOverview({ averageRating: 0, totalReviews: 0, distribution: [] });
     } finally {
       setLoading(false);
     }
   };
 
+  // Fetch feedbacks from API with pagination and filters
   const fetchFeedbacks = async (page = 1, { search = '', campaign = '' } = {}) => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({ 
-        page: page.toString(), 
-        limit: limit.toString() 
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString()
       });
-      if (search) params.set('search', search);
-      if (campaign) params.set('campaign', campaign);
       
-      const res = await fetch(`${API_URL}/feedback?${params.toString()}`);
-      if (!res.ok) throw new Error('Failed to load feedbacks');
+      if (search) params.append('search', search);
+      if (campaign) params.append('campaign', campaign);
+
+      const response = await fetch(`${API_URL}/feedback?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch feedbacks');
       
-      const data = await res.json();
+      const data = await response.json();
       setFeedbacks(data.items || []);
       setTotalPages(data.totalPages || 1);
       setError(null);
@@ -217,7 +218,7 @@ const Feedback1 = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbarm />
+      <Navbart />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
