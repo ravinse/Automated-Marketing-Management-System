@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, ChevronDown, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import Navbarm from "./Navbarm";
 
-// Rating Overview Component
+const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+// Rating Overview Component (unchanged API usage)
 const RatingOverview = ({ rating, totalReviews, ratingData }) => {
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -22,14 +24,14 @@ const RatingOverview = ({ rating, totalReviews, ratingData }) => {
         </div>
         <div className="text-gray-600">{totalReviews} reviews</div>
       </div>
-      
+
       <div className="space-y-3">
         {ratingData.map((item) => (
           <div key={item.stars} className="flex items-center space-x-3">
             <span className="text-sm text-gray-600 w-2">{item.stars}</span>
             <div className="flex-1 bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-gray-900 h-2 rounded-full" 
+              <div
+                className="bg-gray-900 h-2 rounded-full"
                 style={{ width: `${item.percentage}%` }}
               />
             </div>
@@ -41,161 +43,184 @@ const RatingOverview = ({ rating, totalReviews, ratingData }) => {
   );
 };
 
-// Feedback Item Component
 const FeedbackItem = ({ feedback }) => {
   return (
     <div className="flex space-x-4">
       <img
-        src={feedback.avatar}
+        src={feedback.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(feedback.name || 'User')}&background=ccc&color=000`} 
         alt="User"
         className="w-12 h-12 rounded-full"
       />
       <div className="flex-1">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-gray-900">{feedback.name}</h3>
-          <span className="text-sm text-gray-500">{feedback.timeAgo}</span>
+          <h3 className="font-semibold text-gray-900">{feedback.name || 'Anonymous'}</h3>
+          <span className="text-sm text-gray-500">{new Date(feedback.createdAt).toLocaleDateString()}</span>
         </div>
         <p className="text-gray-600 mb-2">{feedback.description}</p>
-        <span className="text-sm text-gray-500">Campaign: {feedback.campaign}</span>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-500">Campaign: {feedback.campaign || '—'}</span>
+          <div className="text-sm text-yellow-500">{feedback.rating || '-'}/5</div>
+        </div>
       </div>
     </div>
   );
 };
 
-// Pagination Component
-const Pagination = ({ currentPage, onPageChange }) => {
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  const pages = [];
+  for (let i = 1; i <= Math.min(totalPages, 7); i++) pages.push(i);
   return (
     <div className="flex items-center justify-center space-x-2 mt-8 pt-6 border-t border-gray-200">
-      <button className="p-2 text-gray-400 hover:text-gray-600">
+      <button
+        onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+        className="p-2 text-gray-400 hover:text-gray-600">
         <ChevronLeft className="w-5 h-5" />
       </button>
-      <button className="px-3 py-2 text-sm font-medium bg-gray-900 text-white rounded-md">1</button>
-      <button className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md">2</button>
-      <button className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md">3</button>
-      <span className="px-2 text-gray-500">...</span>
-      <button className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md">10</button>
-      <button className="p-2 text-gray-600 hover:text-gray-800">
+
+      {pages.map(p => (
+        <button
+          key={p}
+          onClick={() => onPageChange(p)}
+          className={`px-3 py-2 text-sm font-medium rounded-md ${p === currentPage ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100'}`}>
+          {p}
+        </button>
+      ))}
+
+      <button
+        onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+        className="p-2 text-gray-600 hover:text-gray-800">
         <ChevronRight className="w-5 h-5" />
       </button>
     </div>
   );
 };
 
-// Search and Filters Component
-const SearchFilters = () => {
+const SearchFilters = ({ onSearch }) => {
+  const [q, setQ] = useState('');
+  const [campaign, setCampaign] = useState('');
+
+  const submit = (e) => {
+    e?.preventDefault();
+    onSearch({ search: q, campaign });
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+    <form onSubmit={submit} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
       <div className="flex items-center space-x-4">
         <div className="flex-1 relative">
           <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search feedback"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
-        <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
-          <span>Date Range</span>
-          <ChevronDown className="w-4 h-4" />
-        </button>
-        <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
-          <span>Campaign Type</span>
-          <ChevronDown className="w-4 h-4" />
-        </button>
+        <input
+          value={campaign}
+          onChange={(e) => setCampaign(e.target.value)}
+          placeholder="Campaign Type"
+          className="px-4 py-2 border border-gray-300 rounded-md"
+        />
+        <button type="submit" className="px-4 py-2 bg-gray-900 text-white rounded-md">Search</button>
       </div>
-    </div>
+    </form>
   );
 };
 
-// Recent Feedback Component
-const RecentFeedback = ({ feedbackData, currentPage, onPageChange }) => {
+const RecentFeedback = ({ feedbackData, currentPage, onPageChange, totalPages }) => {
   return (
     <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <h2 className="text-xl font-semibold text-gray-900 mb-6">Recent Feedback</h2>
-      
+
       <div className="space-y-6">
         {feedbackData.map((feedback) => (
-          <FeedbackItem key={feedback.id} feedback={feedback} />
+          <FeedbackItem key={feedback._id} feedback={feedback} />
         ))}
       </div>
 
-      <Pagination currentPage={currentPage} onPageChange={onPageChange} />
+      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
     </div>
   );
 };
 
-// Main Dashboard Component
 const Feedback1 = () => {
+  const [overview, setOverview] = useState({ averageRating: 0, totalReviews: 0, distribution: [] });
+  const [feedbacks, setFeedbacks] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [filters, setFilters] = useState({ search: '', campaign: '' });
+  const limit = 4; // items per page
 
-  // Sample data
-  const feedbackData = [
-    {
-      id: 1,
-      name: "Great product!",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face",
-      description: "The product quality exceeded my expectations. Will definitely recommend to friends.",
-      campaign: "Summer Sale",
-      timeAgo: "2 days ago"
-    },
-    {
-      id: 2,
-      name: "Delivery was late",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face",
-      description: "The delivery was delayed by a week, which was quite inconvenient.",
-      campaign: "Back to School",
-      timeAgo: "5 days ago"
-    },
-    {
-      id: 3,
-      name: "Excellent customer service",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face",
-      description: "The customer service was very helpful in resolving my issue.",
-      campaign: "Holiday Promotion",
-      timeAgo: "1 week ago"
-    },
-    {
-      id: 4,
-      name: "Innovative design",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face",
-      description: "The product is innovative and user-friendly. I love the design!",
-      campaign: "New Product Launch",
-      timeAgo: "2 weeks ago"
+  useEffect(() => {
+    fetchOverview();
+  }, []);
+
+  useEffect(() => {
+    fetchFeedbacks(currentPage, filters);
+  }, [currentPage, filters]);
+
+  const fetchOverview = async () => {
+    try {
+      const res = await fetch(`${API}/feedback/overview`);
+      if (!res.ok) throw new Error('Failed to load overview');
+      const data = await res.json();
+      setOverview({
+        averageRating: data.averageRating || 0,
+        totalReviews: data.totalReviews || 0,
+        distribution: data.distribution || []
+      });
+    } catch (err) {
+      console.error(err);
     }
-  ];
+  };
 
-  const ratingData = [
-    { stars: 5, percentage: 40 },
-    { stars: 4, percentage: 30 },
-    { stars: 3, percentage: 15 },
-    { stars: 2, percentage: 10 },
-    { stars: 1, percentage: 5 }
-  ];
+  const fetchFeedbacks = async (page = 1, { search, campaign } = {}) => {
+    try {
+      const params = new URLSearchParams({ page, limit });
+      if (search) params.set('search', search);
+      if (campaign) params.set('campaign', campaign);
+      const res = await fetch(`${API}/feedback?${params.toString()}`);
+      if (!res.ok) throw new Error('Failed to load feedbacks');
+      const data = await res.json();
+      setFeedbacks(data.items || []);
+      const pages = Math.ceil((data.total || 0) / limit) || 1;
+      setTotalPages(pages);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const onSearch = (newFilters) => {
+    setCurrentPage(1);
+    setFilters(newFilters);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbarm/>
+      <Navbarm />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Feedback & Ratings</h1>
           <p className="text-gray-600">Analyze customer feedback and ratings to improve your campaigns.</p>
         </div>
 
-        <SearchFilters />
+        <SearchFilters onSearch={onSearch} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <RatingOverview 
-            rating={4.5} 
-            totalReviews={1250} 
-            ratingData={ratingData} 
+            rating={overview.averageRating} 
+            totalReviews={overview.totalReviews} 
+            ratingData={overview.distribution} 
           />
-          
+
           <RecentFeedback 
-            feedbackData={feedbackData}
+            feedbackData={feedbacks}
             currentPage={currentPage}
             onPageChange={setCurrentPage}
+            totalPages={totalPages}
           />
         </div>
       </div>
