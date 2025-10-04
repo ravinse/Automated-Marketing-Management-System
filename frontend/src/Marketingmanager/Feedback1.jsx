@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Search, ChevronDown, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import Navbarm from "./Navbarm";
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// API Configuration - Use the same backend as Team Member feedback
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
-// Rating Overview Component (unchanged API usage)
+// Rating Overview Component
 const RatingOverview = ({ rating, totalReviews, ratingData }) => {
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -151,6 +152,8 @@ const Feedback1 = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [filters, setFilters] = useState({ search: '', campaign: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const limit = 4; // items per page
 
   useEffect(() => {
@@ -163,7 +166,8 @@ const Feedback1 = () => {
 
   const fetchOverview = async () => {
     try {
-      const res = await fetch(`${API}/feedback/overview`);
+      setLoading(true);
+      const res = await fetch(`${API_URL}/feedback/overview`);
       if (!res.ok) throw new Error('Failed to load overview');
       const data = await res.json();
       setOverview({
@@ -171,24 +175,38 @@ const Feedback1 = () => {
         totalReviews: data.totalReviews || 0,
         distribution: data.distribution || []
       });
+      setError(null);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching overview:', err);
+      setError('Failed to load feedback overview');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchFeedbacks = async (page = 1, { search, campaign } = {}) => {
+  const fetchFeedbacks = async (page = 1, { search = '', campaign = '' } = {}) => {
     try {
-      const params = new URLSearchParams({ page, limit });
+      setLoading(true);
+      const params = new URLSearchParams({ 
+        page: page.toString(), 
+        limit: limit.toString() 
+      });
       if (search) params.set('search', search);
       if (campaign) params.set('campaign', campaign);
-      const res = await fetch(`${API}/feedback?${params.toString()}`);
+      
+      const res = await fetch(`${API_URL}/feedback?${params.toString()}`);
       if (!res.ok) throw new Error('Failed to load feedbacks');
+      
       const data = await res.json();
       setFeedbacks(data.items || []);
-      const pages = Math.ceil((data.total || 0) / limit) || 1;
-      setTotalPages(pages);
+      setTotalPages(data.totalPages || 1);
+      setError(null);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching feedbacks:', err);
+      setError('Failed to load feedbacks');
+      setFeedbacks([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -207,13 +225,26 @@ const Feedback1 = () => {
           <p className="text-gray-600">Analyze customer feedback and ratings to improve your campaigns.</p>
         </div>
 
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+
+        {loading && (
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+            <p className="mt-2 text-gray-600">Loading feedbacks...</p>
+          </div>
+        )}
+
         <SearchFilters onSearch={onSearch} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <RatingOverview 
-            rating={overview.averageRating} 
-            totalReviews={overview.totalReviews} 
-            ratingData={overview.distribution} 
+            rating={overview.averageRating || 0} 
+            totalReviews={overview.totalReviews || 0} 
+            ratingData={overview.distribution || []} 
           />
 
           <RecentFeedback 
