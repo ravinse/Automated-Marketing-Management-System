@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Navbar from './Navbart';
 import { FileText, Send, PlayCircle, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -7,14 +7,49 @@ import SentForApproval from './Sentapproval';
 import Running from './Running';
 import Finished from './Finished';
 
+// API Configuration
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
+
 const Home = () => {
   const [activeSection, setActiveSection] = useState(null);
+  const [campaignCounts, setCampaignCounts] = useState({
+    drafted: 0,
+    sentForApproval: 0,
+    running: 0,
+    finished: 0
+  });
+
+  useEffect(() => {
+    fetchCampaignCounts();
+  }, [activeSection]); // Refetch when section changes
+
+  const fetchCampaignCounts = async () => {
+    try {
+      const response = await fetch(`${API_URL}/campaigns`);
+      if (!response.ok) throw new Error('Failed to fetch campaigns');
+      
+      const data = await response.json();
+      const campaigns = data.campaigns || data.items || [];
+      
+      // Count campaigns by status
+      const counts = {
+        drafted: campaigns.filter(c => c.status === 'draft').length,
+        sentForApproval: campaigns.filter(c => c.status === 'pending_approval').length,
+        running: campaigns.filter(c => c.status === 'approved' || c.status === 'running').length,
+        finished: campaigns.filter(c => c.status === 'completed' || c.status === 'finished').length
+      };
+      
+      setCampaignCounts(counts);
+    } catch (error) {
+      console.error('Error fetching campaign counts:', error);
+    }
+  };
 
   const campaignStats = [
     {
       id: 'drafted',
       title: 'Drafted',
-      count: 2,
+      count: campaignCounts.drafted,
       icon: FileText,
       color: 'bg-blue-500',
       lightColor: 'bg-blue-50',
@@ -24,7 +59,7 @@ const Home = () => {
     {
       id: 'sentForApproval',
       title: 'Sent for Approval',
-      count: 3,
+      count: campaignCounts.sentForApproval,
       icon: Send,
       color: 'bg-yellow-500',
       lightColor: 'bg-yellow-50',
@@ -34,7 +69,7 @@ const Home = () => {
     {
       id: 'running',
       title: 'Running',
-      count: 5,
+      count: campaignCounts.running,
       icon: PlayCircle,
       color: 'bg-green-500',
       lightColor: 'bg-green-50',
@@ -44,7 +79,7 @@ const Home = () => {
     {
       id: 'finished',
       title: 'Finished',
-      count: 8,
+      count: campaignCounts.finished,
       icon: CheckCircle2,
       color: 'bg-gray-500',
       lightColor: 'bg-gray-50',
@@ -80,7 +115,7 @@ const Home = () => {
               <h1 className="text-4xl font-bold text-gray-900 mb-2">Campaign Dashboard</h1>
               <p className="text-gray-600">Manage and track all your marketing campaigns</p>
             </div>
-            <Link to="/newcampaign">
+            <Link to="/createcampaingt">
               <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                 + New Campaign
               </button>

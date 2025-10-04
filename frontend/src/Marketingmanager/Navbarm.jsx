@@ -15,7 +15,7 @@ const Navbarm = () => {
       <div className="ml-10">
         <nav className="flex sm:justify-center space-x-4">
           {[
-            ['Dashboard', '/'],
+            ['Dashboard', '/performance'],
             ['Campaigns', '/Campaign'],
             ['Templates', '/Template'],
             ['Performance', '/performanceoverview'],

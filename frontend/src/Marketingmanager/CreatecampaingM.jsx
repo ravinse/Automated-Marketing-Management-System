@@ -1,17 +1,52 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import Navbarm from './Navbarm'
+// API Configuration
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 function CampaignCreation() {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Campaign ID for tracking saved campaign
+  const [campaignId, setCampaignId] = useState(null);
+  const [currentStep, setCurrentStep] = useState('basic'); // Track current section
+  const [autoSaving, setAutoSaving] = useState(false);
   
   // Debug log
   useEffect(() => {
     console.log('CampaignCreation component mounted');
-  }, []);
+    loadTemplates();
+    
+    // Check if template ID is in URL
+    const params = new URLSearchParams(location.search);
+    const templateId = params.get('templateId');
+    if (templateId) {
+      handleLoadTemplate(templateId);
+    }
+  }, [location]);
   
   // UI states
   const [success, setSuccess] = useState(null);
-  const [templates] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+
+  // Load templates from database
+  const loadTemplates = async () => {
+    try {
+      setIsLoadingTemplates(true);
+      const response = await fetch(`${API_URL}/templates`);
+      if (response.ok) {
+        const data = await response.json();
+        setTemplates(data.templates || []);
+        console.log('Loaded templates:', data.templates);
+      }
+    } catch (error) {
+      console.error('Error loading templates:', error);
+    } finally {
+      setIsLoadingTemplates(false);
+    }
+  };
 
   const [formData, setFormData] = useState({
     title: '',
@@ -55,6 +90,60 @@ function CampaignCreation() {
         [name]: value
       }));
     }
+    // Trigger auto-save after a short delay
+    triggerAutoSave();
+  };
+
+  // Auto-save function
+  const autoSaveCampaign = async (data) => {
+    try {
+      setAutoSaving(true);
+      const url = campaignId 
+        ? `${API_URL}/campaigns/autosave/${campaignId}`
+        : `${API_URL}/campaigns`;
+      
+      const method = campaignId ? 'PATCH' : 'POST';
+      
+      const payload = {
+        ...data,
+        createdBy: 'current-user', // Replace with actual user from auth
+        currentStep: currentStep,
+        status: 'draft'
+      };
+
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error('Failed to save campaign');
+      
+      const result = await response.json();
+      
+      // Set campaign ID if it's a new campaign
+      if (!campaignId && result.campaign._id) {
+        setCampaignId(result.campaign._id);
+        console.log('Campaign created with ID:', result.campaign._id);
+      }
+      
+      console.log('Campaign auto-saved successfully');
+      setAutoSaving(false);
+    } catch (error) {
+      console.error('Error auto-saving campaign:', error);
+      setAutoSaving(false);
+    }
+  };
+
+  // Debounce auto-save
+  let autoSaveTimeout;
+  const triggerAutoSave = () => {
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(() => {
+      autoSaveCampaign(formData);
+    }, 2000); // Save 2 seconds after user stops typing
   };
 
   const handleFileUpload = (e) => {
@@ -95,7 +184,7 @@ function CampaignCreation() {
   };
 
   // Submit for Approval functionality
-  const handleSubmitForApproval = () => {
+  const handleSubmitForApproval = async () => {
     // Validate required fields
     if (!formData.title.trim()) {
       alert('Campaign title is required');
@@ -107,10 +196,57 @@ function CampaignCreation() {
       return;
     }
 
-    setSuccess('Campaign submitted for approval successfully!');
-    setTimeout(() => {
-      navigate('/campaigns');
-    }, 2000);
+    try {
+      let currentCampaignId = campaignId;
+      
+      // First, ensure campaign is saved
+      if (!currentCampaignId) {
+        // Save campaign first and get the ID
+        const saveResponse = await fetch(`${API_URL}/campaigns`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...formData,
+            createdBy: 'current-user',
+            currentStep: currentStep,
+            status: 'draft'
+          })
+        });
+
+        if (!saveResponse.ok) throw new Error('Failed to save campaign');
+        
+        const saveResult = await saveResponse.json();
+        currentCampaignId = saveResult.campaign._id;
+        setCampaignId(currentCampaignId);
+      }
+
+      if (!currentCampaignId) {
+        alert('Failed to save campaign. Please try again.');
+        return;
+      }
+
+      // Submit for approval
+      const response = await fetch(`${API_URL}/campaigns/submit/${currentCampaignId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to submit campaign');
+
+      const result = await response.json();
+      setSuccess('Campaign submitted for approval successfully!');
+      
+      setTimeout(() => {
+        navigate('/campaigns');
+      }, 2000);
+    } catch (error) {
+      console.error('Error submitting campaign:', error);
+      alert('Failed to submit campaign for approval. Please try again.');
+    }
   };
 
   // Save as Draft functionality
@@ -143,24 +279,87 @@ function CampaignCreation() {
   };
 
   // Save as Template functionality
-  const handleSaveAsTemplate = () => {
+  const handleSaveAsTemplate = async () => {
     if (!formData.templateName.trim()) {
       alert('Template name is required');
       return;
     }
 
-    setSuccess('Template saved successfully!');
+    try {
+      const templateData = {
+        name: formData.templateName,
+        description: formData.description,
+        emailSubject: formData.emailSubject,
+        emailContent: formData.emailContent,
+        smsContent: formData.smsContent,
+        selectedFilters: formData.selectedFilters,
+        customerSegments: formData.customerSegments,
+        attachments: formData.attachments.map(file => file.name || file),
+        createdBy: 'current-user' // Replace with actual user from auth
+      };
+
+      const response = await fetch(`${API_URL}/templates`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(templateData)
+      });
+
+      if (!response.ok) throw new Error('Failed to save template');
+
+      const result = await response.json();
+      setSuccess('Template saved successfully!');
+      
+      // Reload templates to show the new one
+      await loadTemplates();
+      
+      // Clear template name field
+      setFormData(prev => ({ ...prev, templateName: '' }));
+      
+      console.log('Template saved:', result.template);
+    } catch (error) {
+      console.error('Error saving template:', error);
+      alert('Failed to save template. Please try again.');
+    }
   };
 
   // Load Template functionality
-  const handleLoadTemplate = (templateId) => {
-    // This would load template data in a real implementation
-    setSuccess('Template loaded successfully!');
+  const handleLoadTemplate = async (templateId) => {
+    if (!templateId) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/templates/${templateId}`);
+      if (!response.ok) throw new Error('Failed to load template');
+      
+      const data = await response.json();
+      const template = data.template;
+      
+      // Load template data into form
+      setFormData(prev => ({
+        ...prev,
+        description: template.description || '',
+        emailSubject: template.emailSubject || '',
+        emailContent: template.emailContent || '',
+        smsContent: template.smsContent || '',
+        selectedFilters: template.selectedFilters || [],
+        customerSegments: template.customerSegments || [],
+        // Note: Attachments are file names, not actual files
+        attachments: []
+      }));
+      
+      setSuccess('Template loaded successfully!');
+      console.log('Template loaded:', template);
+    } catch (error) {
+      console.error('Error loading template:', error);
+      alert('Failed to load template. Please try again.');
+    }
   };
 
   console.log('Rendering CampaignCreation, formData:', formData);
 
   return (
+    <div> <Navbarm/>
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
@@ -168,7 +367,21 @@ function CampaignCreation() {
           <p className="text-gray-600">
             Define your campaign's core details, target audience, and content to engage your customers effectively.
           </p>
+          {campaignId && (
+            <p className="text-sm text-green-600 mt-1">
+              ✓ Draft saved (ID: {campaignId})
+            </p>
+          )}
         </div>
+        {autoSaving && (
+          <div className="flex items-center text-blue-600">
+            <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span className="text-sm">Saving...</span>
+          </div>
+        )}
       </div>
 
       {/* Success Message */}
@@ -192,11 +405,12 @@ function CampaignCreation() {
                 <select
                   className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   onChange={(e) => e.target.value && handleLoadTemplate(e.target.value)}
+                  defaultValue=""
                 >
                   <option value="">Select a template...</option>
                   {templates.map(template => (
-                    <option key={template.templateId} value={template.templateId}>
-                      {template.name}
+                    <option key={template._id} value={template._id}>
+                      {template.name} {template.usageCount > 0 ? `(Used ${template.usageCount}x)` : ''}
                     </option>
                   ))}
                 </select>
@@ -205,6 +419,12 @@ function CampaignCreation() {
                 Found {templates.length} saved template{templates.length !== 1 ? 's' : ''}
               </p>
             </div>
+          </div>
+        )}
+
+        {isLoadingTemplates && (
+          <div className="bg-white p-6 rounded-lg shadow text-center">
+            <p className="text-gray-600">Loading templates...</p>
           </div>
         )}
 
@@ -238,7 +458,10 @@ function CampaignCreation() {
 
         {/* Targeting Section */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Targeting</h2>
+          <h2 className="text-lg font-semibold mb-4">
+            Targeting
+            {autoSaving && <span className="text-sm text-blue-600 ml-2">(Saving...)</span>}
+          </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="grid grid-cols-2 gap-4">
@@ -250,6 +473,12 @@ function CampaignCreation() {
                   name="startDate"
                   value={formData.startDate}
                   onChange={handleChange}
+                  onFocus={() => {
+                    if (currentStep === 'basic') {
+                      setCurrentStep('targeting');
+                      autoSaveCampaign(formData);
+                    }
+                  }}
                   className="w-full p-2 border border-gray-300 rounded"
                 />
               </div>
@@ -393,7 +622,10 @@ function CampaignCreation() {
 
         {/* Content Section */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Content</h2>
+          <h2 className="text-lg font-semibold mb-4">
+            Content
+            {autoSaving && <span className="text-sm text-blue-600 ml-2">(Saving...)</span>}
+          </h2>
           
           <div className="space-y-4">
             <div>
@@ -404,6 +636,12 @@ function CampaignCreation() {
                 name="emailSubject"
                 value={formData.emailSubject}
                 onChange={handleChange}
+                onFocus={() => {
+                  if (currentStep === 'targeting') {
+                    setCurrentStep('content');
+                    autoSaveCampaign(formData);
+                  }
+                }}
                 placeholder="Enter email subject"
                 className="w-full p-2 border border-gray-300 rounded"
               />
@@ -624,21 +862,16 @@ function CampaignCreation() {
           >
             Clear Form
           </button>
-          <button
-            type="button"
-            onClick={handleSaveAsDraft}
-            className="px-4 py-2 text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
-          >
-            Save as Draft
-          </button>
+          
           <button
             type="submit"
             className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
           >
-            Submit for Approval
+            Submit
           </button>
         </div>
       </form>
+    </div>
     </div>
   );
 }
