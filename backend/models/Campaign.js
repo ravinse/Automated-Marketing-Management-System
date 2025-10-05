@@ -79,6 +79,12 @@ const campaignSchema = new mongoose.Schema({
   approvedAt: {
     type: Date
   },
+  rejectedAt: {
+    type: Date
+  },
+  rejectionReason: {
+    type: String
+  },
   completedAt: {
     type: Date
   }

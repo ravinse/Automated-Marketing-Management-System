@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const connectDB = require("./config/db");
+const { startCampaignScheduler } = require("./utils/campaignScheduler");
 
 const app = express();
 
@@ -13,6 +14,9 @@ app.use(express.json());
 
 // Connect to DB
 connectDB();
+
+// Start campaign scheduler to auto-complete expired campaigns
+startCampaignScheduler();
 
 // Routes
 const authRoutes = require("./routes/auth");

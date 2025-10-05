@@ -35,8 +35,8 @@ const Home = () => {
       const counts = {
         drafted: campaigns.filter(c => c.status === 'draft').length,
         sentForApproval: campaigns.filter(c => c.status === 'pending_approval').length,
-        running: campaigns.filter(c => c.status === 'approved' || c.status === 'running').length,
-        finished: campaigns.filter(c => c.status === 'completed' || c.status === 'finished').length
+        running: campaigns.filter(c => c.status === 'running').length,
+        finished: campaigns.filter(c => c.status === 'completed').length
       };
       
       setCampaignCounts(counts);

@@ -1,130 +1,178 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const Completed = () => {
+  const [completedCampaigns, setCompletedCampaigns] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    console.log('Completed component mounted, fetching campaigns...');
+    fetchCompletedCampaigns();
+  }, []);
+
+  const fetchCompletedCampaigns = async () => {
+    try {
+      setLoading(true);
+      console.log('Fetching completed campaigns from API...');
+      const response = await axios.get('http://localhost:5001/api/campaigns', {
+        params: { status: 'completed' }
+      });
+      console.log('Completed campaigns response:', response.data);
+      
+      // Handle paginated response
+      const campaigns = response.data.items || response.data;
+      console.log('Campaigns array:', campaigns);
+      setCompletedCampaigns(campaigns);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching completed campaigns:', err);
+      setError('Failed to load completed campaigns');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
+  const handleDelete = async (campaignId) => {
+    if (!window.confirm('Are you sure you want to delete this campaign?')) {
+      return;
+    }
+
+    try {
+      await axios.delete(`http://localhost:5001/api/campaigns/${campaignId}`);
+      fetchCompletedCampaigns(); // Refresh the list
+    } catch (err) {
+      console.error('Error deleting campaign:', err);
+      alert('Failed to delete campaign');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg text-slate-600">Loading completed campaigns...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg text-red-600">{error}</div>
+      </div>
+    );
+  }
+
   return (
     <div>
-       <div class="w-full">
-  <h3 class="text-lg font-semibold ml-52 text-slate-800">Completed</h3>
- </div>
- <div class="relative flex flex-col h-full text-gray-700 bg-white shadow-md rounded-lg bg-clip-border mx-56 mt-10">
-  <table class="w-full text-left table-auto min-w-max">
-    <thead>
-        <tr>
-            <th class="p-4 border-b border-slate-300 bg-slate-50">
-                <p class="block text-sm font-normal leading-none text-slate-500">
-                    Campaign Name
+      <div className="w-full">
+        <h3 className="text-lg font-semibold ml-52 text-slate-800">
+          Completed ({completedCampaigns.length})
+        </h3>
+      </div>
+      <div className="relative flex flex-col h-full text-gray-700 bg-white shadow-md rounded-lg bg-clip-border mx-56 mt-10">
+        <table className="w-full text-left table-auto min-w-max">
+          <thead>
+            <tr>
+              <th className="p-4 border-b border-slate-300 bg-slate-50">
+                <p className="block text-sm font-normal leading-none text-slate-500">
+                  Campaign Name
                 </p>
-            </th>
-            <th class="p-4 border-b border-slate-300 bg-slate-50">
-                <p class="block text-sm font-normal leading-none text-slate-500">
-                    Target Segment
+              </th>
+              <th className="p-4 border-b border-slate-300 bg-slate-50">
+                <p className="block text-sm font-normal leading-none text-slate-500">
+                  Description
                 </p>
-            </th>
-            <th class="p-4 border-b border-slate-300 bg-slate-50">
-                <p class="block text-sm font-normal leading-none text-slate-500">
-                    Schedule
+              </th>
+              <th className="p-4 border-b border-slate-300 bg-slate-50">
+                <p className="block text-sm font-normal leading-none text-slate-500">
+                  Target Segments
                 </p>
-            </th>
-            <th class="p-4 border-b border-slate-300 bg-slate-50">
-                <p class="block text-sm font-normal leading-none text-slate-500">
-                    Open Rate
+              </th>
+              <th className="p-4 border-b border-slate-300 bg-slate-50">
+                <p className="block text-sm font-normal leading-none text-slate-500">
+                  Duration
                 </p>
-            </th>
-            <th class="p-4 border-b border-slate-300 bg-slate-50">
-                <p class="block text-sm font-normal leading-none text-slate-500">
-                    CTR
+              </th>
+              <th className="p-4 border-b border-slate-300 bg-slate-50">
+                <p className="block text-sm font-normal leading-none text-slate-500">
+                  Completed
                 </p>
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr class="hover:bg-slate-50">
-            <td class="p-4 border-b border-slate-200">
-                <p class="block text-sm text-slate-800">
-                    Spring Collection
+              </th>
+              <th className="p-4 border-b border-slate-300 bg-slate-50">
+                <p className="block text-sm font-normal leading-none text-slate-500">
+                  Actions
                 </p>
-            </td>
-            <td class="p-4 border-b border-slate-200">
-                <p class="block text-sm text-slate-800">
-                    All Customers
-                </p>
-            </td>
-            <td class="p-4 border-b border-slate-200">
-                <p class="block text-sm text-slate-800">
-                    Apr 1 - Apr 30
-                </p>
-            </td>
-            <td class="p-4 border-b border-slate-200">
-                <p class="block text-sm text-slate-800">
-                    20%
-                </p>
-            </td>
-            <td class="p-4 border-b border-slate-200">
-                <p class="block text-sm text-slate-800">
-                    4%
-                </p>
-            </td>
-        </tr>
-        <tr class="hover:bg-slate-50">
-            <td class="p-4 border-b border-slate-200">
-                <p class="block text-sm text-slate-800">
-                    Winter Clearance
-                </p>
-            </td>
-            <td class="p-4 border-b border-slate-200">
-                <p class="block text-sm text-slate-800">
-                    All Customers
-                </p>
-            </td>
-            <td class="p-4 border-b border-slate-200">
-                <p class="block text-sm text-slate-800">
-                    Jan 15 - Jan 15
-                </p>
-            </td>
-            <td class="p-4 border-b border-slate-200">
-                <p class="block text-sm text-slate-800">
-                    15%
-                </p>
-            </td>
-            <td class="p-4 border-b border-slate-200">
-                <p class="block text-sm text-slate-800">
-                    3%
-                </p>
-            </td>
-        </tr>
-        <tr class="hover:bg-slate-50">
-            <td class="p-4 border-b border-slate-200">
-                <p class="block text-sm text-slate-800">
-                    New Year's Sale
-                </p>
-            </td>
-            <td class="p-4 border-b border-slate-200">
-                <p class="block text-sm text-slate-800">
-                    All Customers
-                </p>
-            </td>
-            <td class="p-4 border-b border-slate-200">
-                <p class="block text-sm text-slate-800">
-                    Dec 1 - Dec 24
-                </p>
-            </td>
-            <td class="p-4 border-b border-slate-200">
-                <p class="block text-sm text-slate-800">
-                    35%
-                </p>
-            </td>
-            <td class="p-4 border-b border-slate-200">
-                <p class="block text-sm text-slate-800">
-                    10%
-                </p>
-            </td>
-        </tr>
-    </tbody>
-  </table>
-</div>
- 
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {completedCampaigns.length === 0 ? (
+              <tr>
+                <td colSpan="6" className="p-8 text-center text-slate-500">
+                  No completed campaigns yet
+                </td>
+              </tr>
+            ) : (
+              completedCampaigns.map((campaign) => (
+                <tr key={campaign._id} className="hover:bg-slate-50">
+                  <td className="p-4 border-b border-slate-200">
+                    <p className="block text-sm text-slate-800 font-medium">
+                      {campaign.title}
+                    </p>
+                  </td>
+                  <td className="p-4 border-b border-slate-200">
+                    <p className="block text-sm text-slate-600">
+                      {campaign.description || 'No description'}
+                    </p>
+                  </td>
+                  <td className="p-4 border-b border-slate-200">
+                    <p className="block text-sm text-slate-800">
+                      {campaign.customerSegments && campaign.customerSegments.length > 0
+                        ? campaign.customerSegments.join(', ')
+                        : campaign.targetSegments && campaign.targetSegments.length > 0
+                        ? campaign.targetSegments.join(', ')
+                        : 'All Customers'}
+                    </p>
+                  </td>
+                  <td className="p-4 border-b border-slate-200">
+                    <p className="block text-sm text-slate-800">
+                      {formatDate(campaign.startDate)} - {formatDate(campaign.endDate)}
+                    </p>
+                  </td>
+                  <td className="p-4 border-b border-slate-200">
+                    <p className="block text-sm text-slate-800">
+                      {formatDate(campaign.completedAt)}
+                    </p>
+                  </td>
+                  <td className="p-4 border-b border-slate-200">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleDelete(campaign._id)}
+                        className="text-sm text-red-600 hover:text-red-800 font-medium"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Completed
+export default Completed;

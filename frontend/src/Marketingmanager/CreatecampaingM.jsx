@@ -196,6 +196,22 @@ function CampaignCreation() {
       return;
     }
 
+    if (!formData.startDate) {
+      alert('Campaign start date is required');
+      return;
+    }
+
+    if (!formData.endDate) {
+      alert('Campaign end date is required');
+      return;
+    }
+
+    // Validate that end date is after start date
+    if (new Date(formData.endDate) <= new Date(formData.startDate)) {
+      alert('End date must be after start date');
+      return;
+    }
+
     try {
       let currentCampaignId = campaignId;
       
@@ -466,13 +482,16 @@ function CampaignCreation() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
+                  Start Date <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="date"
                   id="startDate"
                   name="startDate"
                   value={formData.startDate}
                   onChange={handleChange}
+                  required
                   onFocus={() => {
                     if (currentStep === 'basic') {
                       setCurrentStep('targeting');
@@ -483,13 +502,17 @@ function CampaignCreation() {
                 />
               </div>
               <div>
-                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
+                  End Date <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="date"
                   id="endDate"
                   name="endDate"
                   value={formData.endDate}
                   onChange={handleChange}
+                  required
+                  min={formData.startDate}
                   className="w-full p-2 border border-gray-300 rounded"
                 />
               </div>

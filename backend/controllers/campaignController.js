@@ -221,7 +221,7 @@ exports.submitCampaign = async (req, res) => {
   }
 };
 
-// Approve campaign
+// Approve campaign (automatically sets to running status)
 exports.approveCampaign = async (req, res) => {
   try {
     const campaign = await Campaign.findById(req.params.id);
@@ -229,17 +229,150 @@ exports.approveCampaign = async (req, res) => {
       return res.status(404).json({ message: "Campaign not found" });
     }
 
-    campaign.status = 'approved';
+    // Set to running status directly when approved
+    campaign.status = 'running';
     campaign.approvedAt = new Date();
     await campaign.save();
 
     res.json({ 
-      message: "Campaign approved successfully", 
+      message: "Campaign approved and started successfully", 
       campaign 
     });
   } catch (error) {
     console.error('Error approving campaign:', error);
     res.status(500).json({ message: "Error approving campaign", error: error.message });
+  }
+};
+
+// Start campaign (move from approved to running)
+exports.startCampaign = async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) {
+      return res.status(404).json({ message: "Campaign not found" });
+    }
+
+    // Validate campaign can be started
+    if (campaign.status !== 'approved') {
+      return res.status(400).json({ 
+        message: "Only approved campaigns can be started",
+        currentStatus: campaign.status
+      });
+    }
+
+    // Validate required fields for running a campaign
+    if (!campaign.startDate || !campaign.endDate) {
+      return res.status(400).json({ 
+        message: "Start date and end date are required to run a campaign" 
+      });
+    }
+
+    campaign.status = 'running';
+    await campaign.save();
+
+    res.json({ 
+      message: "Campaign started successfully", 
+      campaign 
+    });
+  } catch (error) {
+    console.error('Error starting campaign:', error);
+    res.status(500).json({ message: "Error starting campaign", error: error.message });
+  }
+};
+
+// Complete campaign manually
+exports.completeCampaign = async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) {
+      return res.status(404).json({ message: "Campaign not found" });
+    }
+
+    // Validate campaign can be completed
+    if (campaign.status !== 'running' && campaign.status !== 'approved') {
+      return res.status(400).json({ 
+        message: "Only running or approved campaigns can be completed",
+        currentStatus: campaign.status
+      });
+    }
+
+    campaign.status = 'completed';
+    campaign.completedAt = new Date();
+    await campaign.save();
+
+    res.json({ 
+      message: "Campaign completed successfully", 
+      campaign 
+    });
+  } catch (error) {
+    console.error('Error completing campaign:', error);
+    res.status(500).json({ message: "Error completing campaign", error: error.message });
+  }
+};
+
+// Check and complete expired campaigns (can be called by scheduler or manually)
+exports.checkAndCompleteExpiredCampaigns = async (req, res) => {
+  try {
+    const now = new Date();
+    
+    // Find all running campaigns where end date has passed
+    const expiredCampaigns = await Campaign.find({
+      status: 'running',
+      endDate: { $lte: now }
+    });
+
+    // Update all expired campaigns to completed
+    const completedCount = expiredCampaigns.length;
+    for (const campaign of expiredCampaigns) {
+      campaign.status = 'completed';
+      campaign.completedAt = now;
+      await campaign.save();
+    }
+
+    console.log(`Completed ${completedCount} expired campaigns`);
+    
+    if (res) {
+      res.json({ 
+        message: `Successfully completed ${completedCount} expired campaigns`,
+        completedCampaigns: expiredCampaigns.map(c => ({
+          id: c._id,
+          title: c.title,
+          endDate: c.endDate
+        }))
+      });
+    }
+    
+    return completedCount;
+  } catch (error) {
+    console.error('Error checking expired campaigns:', error);
+    if (res) {
+      res.status(500).json({ message: "Error checking expired campaigns", error: error.message });
+    }
+  }
+};
+
+// Reject campaign
+exports.rejectCampaign = async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) {
+      return res.status(404).json({ message: "Campaign not found" });
+    }
+
+    const { reason } = req.body;
+
+    campaign.status = 'rejected';
+    campaign.rejectedAt = new Date();
+    campaign.rejectionReason = reason || 'No reason provided';
+    await campaign.save();
+
+    res.json({ 
+      message: "Campaign rejected successfully", 
+      campaign 
+    });
+  } catch (error) {
+    console.error('Error rejecting campaign:', error);
+    res.status(500).json({ message: "Error rejecting campaign", error: error.message });
   }
 };
 
