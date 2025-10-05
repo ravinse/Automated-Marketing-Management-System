@@ -1,93 +1,96 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, TrendingUp, Users, MousePointer, DollarSign } from 'lucide-react';
 import Navbarm from './Navbarm';
 
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 const Performance_dashboardm = () => {
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const campaigns = [
-    {
-      name: 'Summer Sale',
-      status: 'Active',
-      sent: 5000,
-      openRate: '25%',
-      clickThroughRate: '5%',
-      conversions: 100,
-      analytics: {
-        totalRevenue: '$12,500',
-        costPerClick: '$2.15',
-        returnOnInvestment: '340%',
-        topPerformingSubject: 'Limited Time: 50% Off Everything!',
-        bestSendTime: '10:00 AM - 12:00 PM',
-        deviceBreakdown: { mobile: 60, desktop: 35, tablet: 5 }
-      }
-    },
-    {
-      name: 'Back to School',
-      status: 'Completed',
-      sent: 4500,
-      openRate: '22%',
-      clickThroughRate: '4%',
-      conversions: 90,
-      analytics: {
-        totalRevenue: '$9,800',
-        costPerClick: '$2.45',
-        returnOnInvestment: '285%',
-        topPerformingSubject: 'Get Ready for School - 30% Off Supplies',
-        bestSendTime: '2:00 PM - 4:00 PM',
-        deviceBreakdown: { mobile: 55, desktop: 40, tablet: 5 }
-      }
-    },
-    {
-      name: 'Holiday Promotion',
-      status: 'Completed',
-      sent: 6000,
-      openRate: '30%',
-      clickThroughRate: '6%',
-      conversions: 150,
-      analytics: {
-        totalRevenue: '$18,750',
-        costPerClick: '$1.95',
-        returnOnInvestment: '425%',
-        topPerformingSubject: '🎄 Holiday Special: Buy 2 Get 1 Free',
-        bestSendTime: '9:00 AM - 11:00 AM',
-        deviceBreakdown: { mobile: 65, desktop: 30, tablet: 5 }
-      }
-    },
-    {
-      name: 'New Product Launch',
-      status: 'Active',
-      sent: 3000,
-      openRate: '20%',
-      clickThroughRate: '3%',
-      conversions: 60,
-      analytics: {
-        totalRevenue: '$7,200',
-        costPerClick: '$2.80',
-        returnOnInvestment: '220%',
-        topPerformingSubject: 'Introducing Our Latest Innovation',
-        bestSendTime: '11:00 AM - 1:00 PM',
-        deviceBreakdown: { mobile: 58, desktop: 38, tablet: 4 }
-      }
-    },
-    {
-      name: 'Customer Appreciation',
-      status: 'Completed',
-      sent: 4000,
-      openRate: '28%',
-      clickThroughRate: '5.5%',
-      conversions: 110,
-      analytics: {
-        totalRevenue: '$14,300',
-        costPerClick: '$2.25',
-        returnOnInvestment: '380%',
-        topPerformingSubject: 'Thank You! Exclusive 25% Discount Inside',
-        bestSendTime: '3:00 PM - 5:00 PM',
-        deviceBreakdown: { mobile: 62, desktop: 33, tablet: 5 }
-      }
+  const [activeCampaignsCount, setActiveCampaignsCount] = useState(0);
+  const [totalCampaignsCount, setTotalCampaignsCount] = useState(0);
+  const [completedCampaignsCount, setCompletedCampaignsCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [campaigns, setCampaigns] = useState([]);
+
+  // Fetch campaign counts on component mount
+  useEffect(() => {
+    fetchCampaignCounts();
+    fetchAllCampaigns();
+  }, []);
+
+  const fetchAllCampaigns = async () => {
+    try {
+      const response = await fetch(`${API_URL}/campaigns`);
+      const data = await response.json();
+      const campaignsData = data.items || [];
+      
+      // Map database campaigns to display format
+      const mappedCampaigns = campaignsData.map(camp => ({
+        _id: camp._id,
+        name: camp.title,
+        status: getDisplayStatus(camp.status),
+        sent: camp.sent || 0,
+        openRate: camp.openRate || '0%',
+        clickThroughRate: camp.clickThroughRate || '0%',
+        conversions: camp.conversions || 0,
+        startDate: camp.startDate,
+        endDate: camp.endDate,
+        description: camp.description,
+        customerSegments: camp.customerSegments || [],
+        analytics: {
+          totalRevenue: camp.totalRevenue || '$0',
+          costPerClick: camp.costPerClick || '$0',
+          returnOnInvestment: camp.returnOnInvestment || '0%',
+          topPerformingSubject: camp.emailSubject || 'N/A',
+          bestSendTime: 'N/A',
+          deviceBreakdown: { mobile: 0, desktop: 0, tablet: 0 }
+        }
+      }));
+      
+      setCampaigns(mappedCampaigns);
+      console.log('Fetched campaigns:', mappedCampaigns);
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
     }
-  ];
+  };
+
+  const getDisplayStatus = (status) => {
+    const statusMap = {
+      'draft': 'Draft',
+      'pending_approval': 'Pending',
+      'running': 'Active',
+      'completed': 'Completed',
+      'rejected': 'Rejected'
+    };
+    return statusMap[status] || status;
+  };
+
+  const fetchCampaignCounts = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch running campaigns count
+      const runningResponse = await fetch(`${API_URL}/campaigns?status=running`);
+      const runningData = await runningResponse.json();
+      setActiveCampaignsCount(runningData.total || 0);
+
+      // Fetch completed campaigns count
+      const completedResponse = await fetch(`${API_URL}/campaigns?status=completed`);
+      const completedData = await completedResponse.json();
+      setCompletedCampaignsCount(completedData.total || 0);
+
+      // Fetch total campaigns count
+      const totalResponse = await fetch(`${API_URL}/campaigns`);
+      const totalData = await totalResponse.json();
+      setTotalCampaignsCount(totalData.total || 0);
+
+    } catch (error) {
+      console.error('Error fetching campaign counts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleViewAnalytics = (campaign) => {
     setSelectedCampaign(campaign);
@@ -100,19 +103,45 @@ const Performance_dashboardm = () => {
   };
 
   const getStatusBadge = (status) => {
-    if (status === 'Active') {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          Active
-        </span>
-      );
-    } else {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-          Completed
-        </span>
-      );
-    }
+    const statusConfig = {
+      'Active': {
+        bgColor: 'bg-green-100',
+        textColor: 'text-green-800',
+        label: 'Active'
+      },
+      'Completed': {
+        bgColor: 'bg-blue-100',
+        textColor: 'text-blue-800',
+        label: 'Completed'
+      },
+      'Pending': {
+        bgColor: 'bg-yellow-100',
+        textColor: 'text-yellow-800',
+        label: 'Pending'
+      },
+      'Draft': {
+        bgColor: 'bg-gray-100',
+        textColor: 'text-gray-800',
+        label: 'Draft'
+      },
+      'Rejected': {
+        bgColor: 'bg-red-100',
+        textColor: 'text-red-800',
+        label: 'Rejected'
+      }
+    };
+
+    const config = statusConfig[status] || {
+      bgColor: 'bg-gray-100',
+      textColor: 'text-gray-800',
+      label: status
+    };
+
+    return (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bgColor} ${config.textColor}`}>
+        {config.label}
+      </span>
+    );
   };
 
   return (
@@ -127,19 +156,25 @@ const Performance_dashboardm = () => {
         {/* Total Campaigns */}
         <div className="border rounded-lg p-6 shadow-sm bg-white">
           <h3 className="text-gray-600 mb-2">Total Campaigns</h3>
-          <p className="text-2xl font-bold">25</p>
+          <p className="text-2xl font-bold">
+            {loading ? '...' : totalCampaignsCount}
+          </p>
         </div>
 
         {/* Active Campaigns */}
         <div className="border rounded-lg p-6 shadow-sm bg-white">
           <h3 className="text-gray-600 mb-2">Active Campaigns</h3>
-          <p className="text-2xl font-bold">5</p>
+          <p className="text-2xl font-bold">
+            {loading ? '...' : activeCampaignsCount}
+          </p>
         </div>
 
         {/* Campaigns Completed */}
         <div className="border rounded-lg p-6 shadow-sm bg-white">
           <h3 className="text-gray-600 mb-2">Campaigns Completed</h3>
-          <p className="text-2xl font-bold">20</p>
+          <p className="text-2xl font-bold">
+            {loading ? '...' : completedCampaignsCount}
+          </p>
         </div></div>
         <div className="mb-6">
           <h2 className="text-xl font-bold text-gray-900">Campaign Metrics</h2>
@@ -178,36 +213,50 @@ const Performance_dashboardm = () => {
               
               {/* Table Body */}
               <tbody className="bg-white divide-y divide-gray-200">
-                {campaigns.map((campaign, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {campaign.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(campaign.status)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {campaign.sent.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {campaign.openRate}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {campaign.clickThroughRate}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {campaign.conversions}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button 
-                        onClick={() => handleViewAnalytics(campaign)}
-                        className="text-blue-600 hover:text-blue-900 text-sm font-medium"
-                      >
-                        View
-                      </button>
+                {loading ? (
+                  <tr>
+                    <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
+                      Loading campaigns...
                     </td>
                   </tr>
-                ))}
+                ) : campaigns.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
+                      No campaigns found
+                    </td>
+                  </tr>
+                ) : (
+                  campaigns.map((campaign) => (
+                    <tr key={campaign._id || campaign.name} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {campaign.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(campaign.status)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {campaign.sent ? campaign.sent.toLocaleString() : '0'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {campaign.openRate}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {campaign.clickThroughRate}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {campaign.conversions}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button 
+                          onClick={() => handleViewAnalytics(campaign)}
+                          className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

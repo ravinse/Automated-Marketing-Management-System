@@ -58,7 +58,7 @@ function App() {
         <Route path="/Feedback" element={<Feedback1 />} />
         <Route path="/Template" element={<Templete />} />
         {/* <Route path ="/EditCampaignCreation" element={<EditCampaignCreation/>}/> */}
-        <Route path="/Homeowner" element={<OwnerDash />} />
+        
         <Route path="/reset-password/:token" element={<NewPass />} />
         <Route path="/ahome" element={<AdminDashboard />} />
         <Route path="/feedbackT" element={<FeedbackT />} />
@@ -66,6 +66,8 @@ function App() {
         <Route path="/createcampaingt" element={<CreatecampaingT />} />
         <Route path="/createcampaingm" element={<CreatecampaingM />} />
         <Route path="/pendingapproval" element={<PendingApproval />} />
+        <Route path ="/owner" element={<OwnerDash />} />
+        
 
       </Routes>
     </div>

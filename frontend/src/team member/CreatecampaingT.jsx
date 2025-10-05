@@ -91,8 +91,8 @@ function CampaignCreation() {
         [name]: value
       }));
     }
-    // Trigger auto-save after a short delay
-    triggerAutoSave();
+    // Auto-save disabled
+    // triggerAutoSave();
   };
 
   // Auto-save function
@@ -216,7 +216,7 @@ function CampaignCreation() {
     try {
       let currentCampaignId = campaignId;
       
-      // First, ensure campaign is saved
+      // First, ensure campaign is saved with all current data (including dates)
       if (!currentCampaignId) {
         // Save campaign first and get the ID
         const saveResponse = await fetch(`${API_URL}/campaigns`, {
@@ -237,6 +237,21 @@ function CampaignCreation() {
         const saveResult = await saveResponse.json();
         currentCampaignId = saveResult.campaign._id;
         setCampaignId(currentCampaignId);
+      } else {
+        // Update existing campaign with all current data (including dates)
+        const updateResponse = await fetch(`${API_URL}/campaigns/autosave/${currentCampaignId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...formData,
+            currentStep: currentStep
+          })
+        });
+
+        if (!updateResponse.ok) throw new Error('Failed to update campaign');
+        console.log('Campaign data updated before submission');
       }
 
       if (!currentCampaignId) {
@@ -547,7 +562,8 @@ function CampaignCreation() {
                   onFocus={() => {
                     if (currentStep === 'basic') {
                       setCurrentStep('targeting');
-                      autoSaveCampaign(formData);
+                      // Auto-save disabled
+                      // autoSaveCampaign(formData);
                     }
                   }}
                   className="w-full p-2 border border-gray-300 rounded"
@@ -714,7 +730,8 @@ function CampaignCreation() {
                 onFocus={() => {
                   if (currentStep === 'targeting') {
                     setCurrentStep('content');
-                    autoSaveCampaign(formData);
+                    // Auto-save disabled
+                    // autoSaveCampaign(formData);
                   }
                 }}
                 placeholder="Enter email subject"
