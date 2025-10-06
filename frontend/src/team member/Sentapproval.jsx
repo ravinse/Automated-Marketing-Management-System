@@ -136,15 +136,14 @@ const SentForApproval = () => {
                 </td>
                 <td className="py-3 px-4 text-sm">
                   <div className="flex gap-2">
-                    <Link to={`/campaignreview?campaignId=${campaign._id}`}>
+                    <Link to={`/campaingreviewt?campaignId=${campaign._id}`}>
                       <button className="text-blue-600 hover:text-blue-800 font-medium">
                         View Details
                       </button>
                     </Link>
                     <button 
                       onClick={() => handleDelete(campaign._id)}
-                      className="text-red-600 hover:text-red-800 font-medium"
-                    >
+                      className="text-red-600 hover:text-red-800 font-medium">
                       Withdraw
                     </button>
                   </div>

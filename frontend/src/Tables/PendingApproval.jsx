@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from "@material-tailwind/react";
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
@@ -155,12 +156,12 @@ const PendingApproval = () => {
                     >
                       Approve
                     </button>
-                    <button 
-                      onClick={() => window.location.href = `/campaigns/${campaign._id}`}
-                      className="px-5 py-2 rounded-full bg-gray-100 text-gray-800 font-normal hover:bg-gray-200 transition"
+                    <Link 
+                      to={`/campaignreview?campaignId=${campaign._id}`}
+                      className="px-5 py-2 rounded-full bg-gray-100 text-gray-800 font-normal hover:bg-gray-200 transition inline-block text-center"
                     >
                       View
-                    </button>
+                    </Link>
                   </td>
                 </tr>
               ))}

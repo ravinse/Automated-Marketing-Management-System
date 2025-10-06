@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from "@material-tailwind/react";
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
@@ -178,11 +179,12 @@ const Running = () => {
                       >
                         Complete
                       </button>
-                      <button
+                      <Link
+                        to={`/campaingreviewt?campaignId=${campaign._id}`}
                         className="text-blue-600 hover:text-blue-800 font-medium text-sm"
                       >
                         View Details
-                      </button>
+                      </Link>
                     </div>
                   </td>
                 </tr>

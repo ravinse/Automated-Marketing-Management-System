@@ -116,7 +116,7 @@ const Running = () => {
                     </span>
                   </td>
                   <td className="py-3 px-4 text-sm space-x-2">
-                    <Link to={`/createcampaingt?id=${campaign._id}`}>
+                    <Link to={`/campaingreviewt?campaignId=${campaign._id}`}>
                       <button className="text-blue-600 hover:text-blue-800 font-medium">
                         View Details
                       </button>

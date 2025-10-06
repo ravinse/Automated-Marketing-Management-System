@@ -19,13 +19,57 @@ function CampaignCreation() {
     console.log('CampaignCreation component mounted');
     loadTemplates();
     
-    // Check if template ID is in URL
+    // Check if campaignId is in URL (for editing existing campaign)
     const params = new URLSearchParams(location.search);
+    const urlCampaignId = params.get('campaignId');
     const templateId = params.get('templateId');
-    if (templateId) {
+    
+    if (urlCampaignId) {
+      // Load existing campaign for editing
+      loadCampaignForEdit(urlCampaignId);
+    } else if (templateId) {
+      // Load template
       handleLoadTemplate(templateId);
     }
   }, [location]);
+  
+  // Load existing campaign for editing
+  const loadCampaignForEdit = async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/campaigns/${id}`);
+      if (!response.ok) throw new Error('Failed to load campaign');
+      
+      const campaign = await response.json();
+      
+      // Set campaign ID
+      setCampaignId(campaign._id);
+      
+      // Populate form data
+      setFormData({
+        title: campaign.title || '',
+        description: campaign.description || '',
+        startDate: campaign.startDate ? campaign.startDate.split('T')[0] : '',
+        endDate: campaign.endDate ? campaign.endDate.split('T')[0] : '',
+        selectedFilters: campaign.selectedFilters || [],
+        customerSegments: campaign.customerSegments || [],
+        emailSubject: campaign.emailSubject || '',
+        emailContent: campaign.emailContent || campaign.content || '',
+        smsContent: campaign.smsContent || '',
+        templateName: campaign.templateName || '',
+        attachments: campaign.attachments || []
+      });
+      
+      // Set current step if available
+      if (campaign.currentStep) {
+        setCurrentStep(campaign.currentStep);
+      }
+      
+      console.log('Campaign loaded for editing:', campaign);
+    } catch (error) {
+      console.error('Error loading campaign:', error);
+      alert('Failed to load campaign for editing');
+    }
+  };
   
   // UI states
   const [success, setSuccess] = useState(null);
@@ -476,8 +520,8 @@ function CampaignCreation() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Load Template Section */}
-        {templates.length > 0 && (
+        {/* Load Template Section - Only show when creating new campaign, not when editing */}
+        {!campaignId && templates.length > 0 && (
           <div className="bg-white p-6 rounded-lg shadow">
             <h3 className="text-lg font-semibold mb-4">Load from Template</h3>
             <div className="mb-4">
@@ -505,7 +549,7 @@ function CampaignCreation() {
           </div>
         )}
 
-        {isLoadingTemplates && (
+        {!campaignId && isLoadingTemplates && (
           <div className="bg-white p-6 rounded-lg shadow text-center">
             <p className="text-gray-600">Loading templates...</p>
           </div>

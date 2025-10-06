@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import Logo from '../assets/logo.png'
 import profile from '../assets/profile.png'
 import search from '../assets/search.png'
@@ -20,14 +21,16 @@ const Navbarm = () => {
             ['Templates', '/Template'],
             ['Performance', '/performanceoverview'],
             ['Feedback', '/Feedback'],
+            
+            
           ].map(([title, url]) => (
-            <a
-              href={url}
+            <Link
+              to={url}
               key={title}
               className="rounded-lg px-3 py-2 text-slate-700 font-medium hover:bg-slate-100 hover:text-slate-900"
             >
               {title}
-            </a>
+            </Link>
           ))}
         </nav>
       </div>

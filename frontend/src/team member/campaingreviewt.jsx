@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import Campaingdate from '../Tables/Campaingdate.jsx'
-import Navbarm from './Navbarm.jsx'
+import Navbart from './Navbart.jsx'
 
 // API Configuration
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
@@ -56,7 +56,7 @@ const Campaignreview = () => {
       if (!response.ok) throw new Error('Failed to approve campaign');
       
       alert('Campaign approved successfully!');
-      navigate('/approvalsm');
+      navigate('/thome');
     } catch (err) {
       console.error('Error approving campaign:', err);
       alert('Failed to approve campaign');
@@ -81,7 +81,7 @@ const Campaignreview = () => {
       if (!response.ok) throw new Error('Failed to reject campaign');
       
       alert('Campaign rejected successfully!');
-      navigate('/approvalsm');
+      navigate('/thome');
     } catch (err) {
       console.error('Error rejecting campaign:', err);
       alert('Failed to reject campaign');
@@ -91,7 +91,7 @@ const Campaignreview = () => {
   if (loading) {
     return (
       <div>
-        <Navbarm />
+        <Navbart />
         <div className='flex flex-col w-3/4 h-auto p-4 mx-20'>
           <p className='text-center py-8 text-gray-600'>Loading campaign details...</p>
         </div>
@@ -102,7 +102,7 @@ const Campaignreview = () => {
   if (error || !campaign) {
     return (
       <div>
-        <Navbarm />
+        <Navbart />
         <div className='flex flex-col w-3/4 h-auto p-4 mx-20'>
           <p className='text-center py-8 text-red-600'>{error || 'Campaign not found'}</p>
           <button 
@@ -118,7 +118,7 @@ const Campaignreview = () => {
 
   return (
     <div>
-      <Navbarm />
+      <Navbart />
       <div >
         <div className='flex flex-col w-3/4 h-auto p-4 mx-20'>
             <h1 className='text-black text-[32px] font-bold'>Campaign Review</h1>
@@ -159,8 +159,8 @@ const Campaignreview = () => {
                         </div>
 
                         <div className='mt-5'><label className='font-semibold'>Campaign Dates</label></div>
-                        <div className='mt-2 flex gap-4'>
-                          <div className="flex-1">
+                        <div className='mt-2 flex flex-col gap-4 w-1/2'>
+                          <div>
                             <div className='text-sm text-gray-600 mb-1'>Start Date</div>
                             <div className="px-3 py-2 border rounded-2xl bg-gray-100 text-gray-700">
                               {campaign.startDate 
@@ -168,7 +168,7 @@ const Campaignreview = () => {
                                 : 'Not set'}
                             </div>
                           </div>
-                          <div className="flex-1">
+                          <div>
                             <div className='text-sm text-gray-600 mb-1'>End Date</div>
                             <div className="px-3 py-2 border rounded-2xl bg-gray-100 text-gray-700">
                               {campaign.endDate 
