@@ -149,6 +149,7 @@ const RecentFeedback = ({ feedbackData, currentPage, onPageChange, totalPages })
 const Feedback1 = () => {
   const [overview, setOverview] = useState({ averageRating: 0, totalReviews: 0, distribution: [] });
   const [feedbacks, setFeedbacks] = useState([]);
+  const [allFeedbacks, setAllFeedbacks] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [filters, setFilters] = useState({ search: '', campaign: '' });
@@ -158,11 +159,24 @@ const Feedback1 = () => {
 
   useEffect(() => {
     fetchOverview();
+    fetchAllFeedbacks();
   }, []);
 
   useEffect(() => {
     fetchFeedbacks(currentPage, filters);
   }, [currentPage, filters]);
+
+  // Fetch all feedbacks for the scrolling bar
+  const fetchAllFeedbacks = async () => {
+    try {
+      const response = await fetch(`${API_URL}/feedback?limit=100`);
+      if (!response.ok) throw new Error('Failed to fetch all feedbacks');
+      const data = await response.json();
+      setAllFeedbacks(data.items || []);
+    } catch (err) {
+      console.error('Error fetching all feedbacks:', err);
+    }
+  };
 
   const fetchOverview = async () => {
     try {
@@ -253,6 +267,66 @@ const Feedback1 = () => {
             onPageChange={setCurrentPage}
             totalPages={totalPages}
           />
+        </div>
+
+        {/* Horizontal Scrolling Bar - View All Feedback */}
+        <div className="mt-12">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900">All Feedback</h2>
+            <div className="text-sm text-gray-600">{allFeedbacks.length} total feedbacks</div>
+          </div>
+          
+          <div className="relative">
+            <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+              <div className="flex gap-4 min-w-max">
+                {allFeedbacks.map((feedback) => (
+                  <div 
+                    key={feedback._id} 
+                    className="flex-shrink-0 w-80 bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex space-x-3">
+                      <img
+                        src={feedback.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(feedback.name || 'User')}&background=ccc&color=000`}
+                        alt="User"
+                        className="w-10 h-10 rounded-full flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="font-semibold text-gray-900 text-sm truncate">
+                            {feedback.name || 'Anonymous'}
+                          </h3>
+                          <div className="flex items-center text-yellow-500 text-xs ml-2">
+                            <Star className="w-3 h-3 fill-yellow-500" />
+                            <span className="ml-1">{feedback.rating || '-'}</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-2">
+                          {new Date(feedback.createdAt).toLocaleDateString()}
+                        </p>
+                        <p className="text-sm text-gray-600 line-clamp-3 mb-2">
+                          {feedback.description}
+                        </p>
+                        <div className="text-xs text-gray-500 truncate">
+                          Campaign: {feedback.campaign || '—'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Scroll Indicators */}
+            <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 pointer-events-none flex justify-between px-2">
+              <div className="w-8 h-full bg-gradient-to-r from-gray-50 to-transparent"></div>
+              <div className="w-8 h-full bg-gradient-to-l from-gray-50 to-transparent"></div>
+            </div>
+          </div>
+          
+          {/* Scroll hint */}
+          <div className="text-center mt-2">
+            <p className="text-sm text-gray-500">← Scroll horizontally to view all feedback →</p>
+          </div>
         </div>
       </div>
     </div>
