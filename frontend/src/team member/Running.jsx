@@ -87,13 +87,13 @@ const Running = () => {
           <table className="min-w-full">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-medium text-gray-700 text-sm">Campaign Name</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700 text-sm">Description</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700 text-sm">Target Segments</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700 text-sm">Start Date</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700 text-sm">End Date</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700 text-sm">Status</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700 text-sm">Actions</th>
+                <th className="text-left py-3 px-4 font-bold text-gray-700 text-sm">Campaign Name</th>
+                <th className="text-left py-3 px-4 font-bold text-gray-700 text-sm">Description</th>
+                <th className="text-left py-3 px-4 font-bold text-gray-700 text-sm">Target Segments</th>
+                <th className="text-left py-3 px-4 font-bold text-gray-700 text-sm">Start Date</th>
+                <th className="text-left py-3 px-4 font-bold text-gray-700 text-sm">End Date</th>
+                <th className="text-left py-3 px-4 font-bold text-gray-700 text-sm">Status</th>
+                <th className="text-left py-3 px-4 font-bold text-gray-700 text-sm">Actions</th>
               </tr>
             </thead>
             <tbody>

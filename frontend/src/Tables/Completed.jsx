@@ -85,32 +85,32 @@ const Completed = () => {
           <thead>
             <tr>
               <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-normal leading-none text-slate-500">
+                <p className="block text-sm font-bold leading-none text-slate-500">
                   Campaign Name
                 </p>
               </th>
               <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-normal leading-none text-slate-500">
+                <p className="block text-sm font-bold leading-none text-slate-500">
                   Description
                 </p>
               </th>
               <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-normal leading-none text-slate-500">
+                <p className="block text-sm font-bold leading-none text-slate-500">
                   Target Segments
                 </p>
               </th>
               <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-normal leading-none text-slate-500">
+                <p className="block text-sm font-bold leading-none text-slate-500">
                   Duration
                 </p>
               </th>
               <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-normal leading-none text-slate-500">
+                <p className="block text-sm font-bold leading-none text-slate-500">
                   Completed
                 </p>
               </th>
               <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-normal leading-none text-slate-500">
+                <p className="block text-sm font-bold leading-none text-slate-500">
                   Actions
                 </p>
               </th>

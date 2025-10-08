@@ -105,6 +105,12 @@ const Navbart = () => {
             </div>
           )}
         </div>
+
+        {/* User Info Button */}
+        <button className="flex flex-col items-start px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors ml-3">
+          <span className="text-sm font-bold text-gray-800">Team Member</span>
+          <span className="text-xs text-gray-600">{userEmail}</span>
+        </button>
       </div>
     </div>
   )

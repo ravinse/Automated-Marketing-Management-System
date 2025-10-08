@@ -95,37 +95,37 @@ const Running = () => {
             <thead>
               <tr>
                 <th className="p-4 border-b border-slate-300 bg-slate-50">
-                  <p className="block text-sm font-normal leading-none text-slate-500">
+                  <p className="block text-sm font-bold leading-none text-slate-500">
                     Campaign Name
                   </p>
                 </th>
                 <th className="p-4 border-b border-slate-300 bg-slate-50">
-                  <p className="block text-sm font-normal leading-none text-slate-500">
+                  <p className="block text-sm font-bold leading-none text-slate-500">
                     Description
                   </p>
                 </th>
                 <th className="p-4 border-b border-slate-300 bg-slate-50">
-                  <p className="block text-sm font-normal leading-none text-slate-500">
+                  <p className="block text-sm font-bold leading-none text-slate-500">
                     Target Segment
                   </p>
                 </th>
                 <th className="p-4 border-b border-slate-300 bg-slate-50">
-                  <p className="block text-sm font-normal leading-none text-slate-500">
+                  <p className="block text-sm font-bold leading-none text-slate-500">
                     Start Date
                   </p>
                 </th>
                 <th className="p-4 border-b border-slate-300 bg-slate-50">
-                  <p className="block text-sm font-normal leading-none text-slate-500">
+                  <p className="block text-sm font-bold leading-none text-slate-500">
                     End Date
                   </p>
                 </th>
                 <th className="p-4 border-b border-slate-300 bg-slate-50">
-                  <p className="block text-sm font-normal leading-none text-slate-500">
+                  <p className="block text-sm font-bold leading-none text-slate-500">
                     Status
                   </p>
                 </th>
                 <th className="p-4 border-b border-slate-300 bg-slate-50">
-                  <p className="block text-sm font-normal leading-none text-slate-500">
+                  <p className="block text-sm font-bold leading-none text-slate-500">
                     Actions
                   </p>
                 </th>

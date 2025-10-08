@@ -230,6 +230,8 @@ function CampaignCreation() {
 
   // Submit for Approval functionality
   const handleSubmitForApproval = async () => {
+    console.log('Submit for Approval clicked');
+    
     // Validate required fields
     if (!formData.title.trim()) {
       alert('Campaign title is required');
@@ -257,71 +259,119 @@ function CampaignCreation() {
       return;
     }
 
+    if (!formData.emailSubject.trim()) {
+      alert('Email subject is required');
+      return;
+    }
+
+    if (!formData.emailContent.trim()) {
+      alert('Email content is required');
+      return;
+    }
+
     try {
-      let currentCampaignId = campaignId;
+      console.log('Starting submission process...');
+      console.log('API_URL:', API_URL);
+      console.log('Form data being sent:', formData);
       
-      // First, ensure campaign is saved with all current data (including dates)
-      if (!currentCampaignId) {
-        // Save campaign first and get the ID
-        const saveResponse = await fetch(`${API_URL}/campaigns`, {
+      // Create or update campaign with pending_approval status
+      const campaignData = {
+        title: formData.title,
+        description: formData.description,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        emailSubject: formData.emailSubject,
+        emailContent: formData.emailContent,
+        smsContent: formData.smsContent || '',
+        selectedFilters: formData.selectedFilters || [],
+        customerSegments: formData.customerSegments || [],
+        status: 'pending_approval',
+        submittedAt: new Date().toISOString(),
+        createdBy: localStorage.getItem('userEmail') || 'team-member',
+        currentStep: currentStep || 'basic'
+      };
+
+      console.log('Campaign data to be sent:', campaignData);
+
+      let response;
+      let url;
+      
+      if (campaignId) {
+        // Update existing campaign
+        url = `${API_URL}/campaigns/${campaignId}`;
+        console.log('Updating existing campaign at:', url);
+        response = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(campaignData)
+        });
+      } else {
+        // Create new campaign
+        url = `${API_URL}/campaigns`;
+        console.log('Creating new campaign at:', url);
+        response = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            ...formData,
-            createdBy: 'current-user',
-            currentStep: currentStep,
-            status: 'draft'
-          })
+          body: JSON.stringify(campaignData)
         });
+      }
 
-        if (!saveResponse.ok) throw new Error('Failed to save campaign');
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Response error text:', errorText);
         
-        const saveResult = await saveResponse.json();
-        currentCampaignId = saveResult.campaign._id;
-        setCampaignId(currentCampaignId);
-      } else {
-        // Update existing campaign with all current data (including dates)
-        const updateResponse = await fetch(`${API_URL}/campaigns/autosave/${currentCampaignId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...formData,
-            currentStep: currentStep
-          })
-        });
-
-        if (!updateResponse.ok) throw new Error('Failed to update campaign');
-        console.log('Campaign data updated before submission');
-      }
-
-      if (!currentCampaignId) {
-        alert('Failed to save campaign. Please try again.');
-        return;
-      }
-
-      // Submit for approval
-      const response = await fetch(`${API_URL}/campaigns/submit/${currentCampaignId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
+        let errorMessage = 'Failed to submit campaign';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (e) {
+          console.error('Could not parse error response as JSON');
+          errorMessage = errorText || errorMessage;
         }
-      });
-
-      if (!response.ok) throw new Error('Failed to submit campaign');
+        
+        throw new Error(errorMessage);
+      }
 
       const result = await response.json();
-      setSuccess('Campaign submitted for approval successfully!');
+      console.log('Campaign submitted successfully:', result);
       
+      // Show success message
+      setSuccess('Campaign submitted for approval successfully! Redirecting...');
+      
+      // Reset form
+      setFormData({
+        title: '',
+        description: '',
+        startDate: '',
+        endDate: '',
+        selectedFilters: [],
+        customerSegments: [],
+        emailSubject: '',
+        emailContent: '',
+        smsContent: '',
+        templateName: '',
+        attachments: []
+      });
+      
+      setCampaignId(null);
+      
+      // Redirect to team home after 2 seconds
       setTimeout(() => {
         navigate('/thome');
-      }, 1500);
+      }, 2000);
+      
     } catch (error) {
-      console.error('Error submitting campaign:', error);
-      alert('Failed to submit campaign for approval. Please try again.');
+      console.error('Detailed error information:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      alert(`Failed to create campaign: ${error.message}`);
     }
   };
 
