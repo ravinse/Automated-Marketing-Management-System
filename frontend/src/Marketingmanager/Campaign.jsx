@@ -16,7 +16,7 @@ const Campaign = () => {
       </div>
       <div className="flex flex-row p-4">
        <div> <h1 className="text-2xl font-bold ml-64 mt-7">Campaigns</h1></div>
-     <div className='ml-auto mr-64'><Link to="/campaigncreation" ><button className="bg-[#F2F2F5] text-black px-4 py-2 rounded-full ml-auto mr-64 mt-7 hover:bg-[#E0E0E5]">
+     <div className='ml-auto mr-64'><Link to="/createcampaingm" ><button className="bg-[#F2F2F5] text-black px-4 py-2 rounded-full ml-auto mr-64 mt-7 hover:bg-[#E0E0E5]">
           Create Campaign
         </button></Link></div>
       </div>

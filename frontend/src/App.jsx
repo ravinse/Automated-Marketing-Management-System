@@ -13,15 +13,24 @@ import Campaign from './Marketingmanager/Campaign';
 import CampaignView from './Marketingmanager/Campaignview';
 import Campaignreview from './Marketingmanager/Campaignreview';
 import Performanceoverview from './Marketingmanager/Performanceoverview';
-import CampaignCreation from './pages/CampaignCreation';
+
 import Performance_dashboardm from './Marketingmanager/Perfomance_dashboardm';
 import Feedback1 from './Marketingmanager/Feedback1';
 import Templete from './Marketingmanager/Templete';
 import AdminDashboard from './admin/AdminDashboard';
+import CreatecampaingM from './Marketingmanager/createcampaingM';
+
+import PendingApproval from './Tables/PendingApproval';
+
 // Team Member
 import Home from './team member/Home';
 import FeedbackT from "./team member/FeedbackT";
 import TemplateT from "./team member/TemplateT";
+import CreatecampaingT from "./team member/createcampaingT";
+import Campaingreviewt from "./team member/campaingreviewt";
+
+
+
 // Owner
 import OwnerDash from './owner/homepage/OwnerDash';
 
@@ -42,20 +51,28 @@ function App() {
         <Route path="/campaignreview" element={<Campaignreview/>} />
         <Route path="/performanceoverview" element={<Performanceoverview/>} />
         <Route path="/thome" element={<Home/>} />
-        <Route path="/newcampaign" element={<CampaignCreation/>} />
+
+        
         {/* <Route path="/Homeoverview" element={<Homeo/>} /> */}
-        <Route path="/campaigncreation" element={<CampaignCreation/>} />
+        
         {/* <Route path="/AHome" element={<AHome/>} /> */}
         {/* <Route path="/Campaign_management" element={<Campaign_management/>}/> */}
         <Route path="/performance" element={<Performance_dashboardm />} />
         <Route path="/Feedback" element={<Feedback1 />} />
         <Route path="/Template" element={<Templete />} />
         {/* <Route path ="/EditCampaignCreation" element={<EditCampaignCreation/>}/> */}
-        <Route path="/Homeowner" element={<OwnerDash />} />
+        
         <Route path="/reset-password/:token" element={<NewPass />} />
         <Route path="/ahome" element={<AdminDashboard />} />
         <Route path="/feedbackT" element={<FeedbackT />} />
         <Route path="/templatet" element={<TemplateT />} />
+        <Route path="/createcampaingt" element={<CreatecampaingT />} />
+        <Route path="/campaingreviewt" element={<Campaingreviewt />} />
+        <Route path="/createcampaingm" element={<CreatecampaingM />} />
+        <Route path="/pendingapproval" element={<PendingApproval />} />
+        <Route path ="/owner" element={<OwnerDash />} />
+        
+        
 
       </Routes>
     </div>

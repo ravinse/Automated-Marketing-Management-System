@@ -22,19 +22,19 @@ const Login = () => {
 
       switch (res.data.user.role) {
         case 'admin':
-          navigate('/admin');
+          navigate('/ahome');
           break;
         case 'manager':
-          navigate('/manager');
+          navigate('/performance');
           break;
         case 'owner':
           navigate('/owner');
           break;
         case 'team member':
-          navigate('/team');
+          navigate('/thome');
           break;
         default:
-          navigate('/home');
+          navigate('/');
       }
     } catch (err) {
       console.error("login error:", err.response?.data);

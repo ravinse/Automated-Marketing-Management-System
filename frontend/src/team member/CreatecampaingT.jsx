@@ -1,17 +1,97 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import Navbar from './Navbart';
+
+// API Configuration
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 function CampaignCreation() {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Campaign ID for tracking saved campaign
+  const [campaignId, setCampaignId] = useState(null);
+  const [currentStep, setCurrentStep] = useState('basic'); // Track current section
+  const [autoSaving, setAutoSaving] = useState(false);
   
   // Debug log
   useEffect(() => {
     console.log('CampaignCreation component mounted');
-  }, []);
+    loadTemplates();
+    
+    // Check if campaignId is in URL (for editing existing campaign)
+    const params = new URLSearchParams(location.search);
+    const urlCampaignId = params.get('campaignId');
+    const templateId = params.get('templateId');
+    
+    if (urlCampaignId) {
+      // Load existing campaign for editing
+      loadCampaignForEdit(urlCampaignId);
+    } else if (templateId) {
+      // Load template
+      handleLoadTemplate(templateId);
+    }
+  }, [location]);
+  
+  // Load existing campaign for editing
+  const loadCampaignForEdit = async (id) => {
+    try {
+      const response = await fetch(`${API_URL}/campaigns/${id}`);
+      if (!response.ok) throw new Error('Failed to load campaign');
+      
+      const campaign = await response.json();
+      
+      // Set campaign ID
+      setCampaignId(campaign._id);
+      
+      // Populate form data
+      setFormData({
+        title: campaign.title || '',
+        description: campaign.description || '',
+        startDate: campaign.startDate ? campaign.startDate.split('T')[0] : '',
+        endDate: campaign.endDate ? campaign.endDate.split('T')[0] : '',
+        selectedFilters: campaign.selectedFilters || [],
+        customerSegments: campaign.customerSegments || [],
+        emailSubject: campaign.emailSubject || '',
+        emailContent: campaign.emailContent || campaign.content || '',
+        smsContent: campaign.smsContent || '',
+        templateName: campaign.templateName || '',
+        attachments: campaign.attachments || []
+      });
+      
+      // Set current step if available
+      if (campaign.currentStep) {
+        setCurrentStep(campaign.currentStep);
+      }
+      
+      console.log('Campaign loaded for editing:', campaign);
+    } catch (error) {
+      console.error('Error loading campaign:', error);
+      alert('Failed to load campaign for editing');
+    }
+  };
   
   // UI states
   const [success, setSuccess] = useState(null);
-  const [templates] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+
+  // Load templates from database
+  const loadTemplates = async () => {
+    try {
+      setIsLoadingTemplates(true);
+      const response = await fetch(`${API_URL}/templates`);
+      if (response.ok) {
+        const data = await response.json();
+        setTemplates(data.templates || []);
+        console.log('Loaded templates:', data.templates);
+      }
+    } catch (error) {
+      console.error('Error loading templates:', error);
+    } finally {
+      setIsLoadingTemplates(false);
+    }
+  };
 
   const [formData, setFormData] = useState({
     title: '',
@@ -55,6 +135,60 @@ function CampaignCreation() {
         [name]: value
       }));
     }
+    // Auto-save disabled
+    // triggerAutoSave();
+  };
+
+  // Auto-save function
+  const autoSaveCampaign = async (data) => {
+    try {
+      setAutoSaving(true);
+      const url = campaignId 
+        ? `${API_URL}/campaigns/autosave/${campaignId}`
+        : `${API_URL}/campaigns`;
+      
+      const method = campaignId ? 'PATCH' : 'POST';
+      
+      const payload = {
+        ...data,
+        createdBy: 'current-user', // Replace with actual user from auth
+        currentStep: currentStep,
+        status: 'draft'
+      };
+
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error('Failed to save campaign');
+      
+      const result = await response.json();
+      
+      // Set campaign ID if it's a new campaign
+      if (!campaignId && result.campaign._id) {
+        setCampaignId(result.campaign._id);
+        console.log('Campaign created with ID:', result.campaign._id);
+      }
+      
+      console.log('Campaign auto-saved successfully');
+      setAutoSaving(false);
+    } catch (error) {
+      console.error('Error auto-saving campaign:', error);
+      setAutoSaving(false);
+    }
+  };
+
+  // Debounce auto-save
+  let autoSaveTimeout;
+  const triggerAutoSave = () => {
+    clearTimeout(autoSaveTimeout);
+    autoSaveTimeout = setTimeout(() => {
+      autoSaveCampaign(formData);
+    }, 2000); // Save 2 seconds after user stops typing
   };
 
   const handleFileUpload = (e) => {
@@ -95,7 +229,9 @@ function CampaignCreation() {
   };
 
   // Submit for Approval functionality
-  const handleSubmitForApproval = () => {
+  const handleSubmitForApproval = async () => {
+    console.log('Submit for Approval clicked');
+    
     // Validate required fields
     if (!formData.title.trim()) {
       alert('Campaign title is required');
@@ -107,18 +243,194 @@ function CampaignCreation() {
       return;
     }
 
-    setSuccess('Campaign submitted for approval successfully!');
-    setTimeout(() => {
-      navigate('/campaigns');
-    }, 2000);
+    if (!formData.startDate) {
+      alert('Campaign start date is required');
+      return;
+    }
+
+    if (!formData.endDate) {
+      alert('Campaign end date is required');
+      return;
+    }
+
+    // Validate that end date is after start date
+    if (new Date(formData.endDate) <= new Date(formData.startDate)) {
+      alert('End date must be after start date');
+      return;
+    }
+
+    if (!formData.emailSubject.trim()) {
+      alert('Email subject is required');
+      return;
+    }
+
+    if (!formData.emailContent.trim()) {
+      alert('Email content is required');
+      return;
+    }
+
+    try {
+      console.log('Starting submission process...');
+      console.log('API_URL:', API_URL);
+      console.log('Form data being sent:', formData);
+      
+      // Create or update campaign with pending_approval status
+      const campaignData = {
+        title: formData.title,
+        description: formData.description,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        emailSubject: formData.emailSubject,
+        emailContent: formData.emailContent,
+        smsContent: formData.smsContent || '',
+        selectedFilters: formData.selectedFilters || [],
+        customerSegments: formData.customerSegments || [],
+        status: 'pending_approval',
+        submittedAt: new Date().toISOString(),
+        createdBy: localStorage.getItem('userEmail') || 'team-member',
+        currentStep: currentStep || 'basic'
+      };
+
+      console.log('Campaign data to be sent:', campaignData);
+
+      let response;
+      let url;
+      
+      if (campaignId) {
+        // Update existing campaign
+        url = `${API_URL}/campaigns/${campaignId}`;
+        console.log('Updating existing campaign at:', url);
+        response = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(campaignData)
+        });
+      } else {
+        // Create new campaign
+        url = `${API_URL}/campaigns`;
+        console.log('Creating new campaign at:', url);
+        response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(campaignData)
+        });
+      }
+
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Response error text:', errorText);
+        
+        let errorMessage = 'Failed to submit campaign';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (e) {
+          console.error('Could not parse error response as JSON');
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+      console.log('Campaign submitted successfully:', result);
+      
+      // Show success message
+      setSuccess('Campaign submitted for approval successfully! Redirecting...');
+      
+      // Reset form
+      setFormData({
+        title: '',
+        description: '',
+        startDate: '',
+        endDate: '',
+        selectedFilters: [],
+        customerSegments: [],
+        emailSubject: '',
+        emailContent: '',
+        smsContent: '',
+        templateName: '',
+        attachments: []
+      });
+      
+      setCampaignId(null);
+      
+      // Redirect to team home after 2 seconds
+      setTimeout(() => {
+        navigate('/thome');
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Detailed error information:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      alert(`Failed to create campaign: ${error.message}`);
+    }
   };
 
   // Save as Draft functionality
-  const handleSaveAsDraft = () => {
-    setSuccess('Campaign saved as draft successfully!');
-    setTimeout(() => {
-      navigate('/campaigns');
-    }, 2000);
+  const handleSaveAsDraft = async () => {
+    // Validate required fields
+    if (!formData.title.trim()) {
+      alert('Campaign title is required');
+      return;
+    }
+
+    try {
+      let currentCampaignId = campaignId;
+      
+      // Save or update campaign with draft status
+      if (!currentCampaignId) {
+        // Create new campaign as draft
+        const response = await fetch(`${API_URL}/campaigns`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...formData,
+            createdBy: 'current-user',
+            status: 'draft'
+          })
+        });
+
+        if (!response.ok) throw new Error('Failed to save campaign');
+        
+        const result = await response.json();
+        currentCampaignId = result.campaign._id;
+        setCampaignId(currentCampaignId);
+      } else {
+        // Update existing campaign
+        const response = await fetch(`${API_URL}/campaigns/autosave/${currentCampaignId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...formData,
+            status: 'draft'
+          })
+        });
+
+        if (!response.ok) throw new Error('Failed to update campaign');
+      }
+
+      setSuccess('Campaign saved as draft successfully!');
+      
+      setTimeout(() => {
+        navigate('/thome');
+      }, 1500);
+    } catch (error) {
+      console.error('Error saving campaign as draft:', error);
+      alert('Failed to save campaign as draft. Please try again.');
+    }
   };
 
   // Delete/Clear form functionality
@@ -143,24 +455,88 @@ function CampaignCreation() {
   };
 
   // Save as Template functionality
-  const handleSaveAsTemplate = () => {
+  const handleSaveAsTemplate = async () => {
     if (!formData.templateName.trim()) {
       alert('Template name is required');
       return;
     }
 
-    setSuccess('Template saved successfully!');
+    try {
+      const templateData = {
+        name: formData.templateName,
+        description: formData.description,
+        emailSubject: formData.emailSubject,
+        emailContent: formData.emailContent,
+        smsContent: formData.smsContent,
+        selectedFilters: formData.selectedFilters,
+        customerSegments: formData.customerSegments,
+        attachments: formData.attachments.map(file => file.name || file),
+        createdBy: 'current-user' // Replace with actual user from auth
+      };
+
+      const response = await fetch(`${API_URL}/templates`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(templateData)
+      });
+
+      if (!response.ok) throw new Error('Failed to save template');
+
+      const result = await response.json();
+      setSuccess('Template saved successfully!');
+      
+      // Reload templates to show the new one
+      await loadTemplates();
+      
+      // Clear template name field
+      setFormData(prev => ({ ...prev, templateName: '' }));
+      
+      console.log('Template saved:', result.template);
+    } catch (error) {
+      console.error('Error saving template:', error);
+      alert('Failed to save template. Please try again.');
+    }
   };
 
   // Load Template functionality
-  const handleLoadTemplate = (templateId) => {
-    // This would load template data in a real implementation
-    setSuccess('Template loaded successfully!');
+  const handleLoadTemplate = async (templateId) => {
+    if (!templateId) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/templates/${templateId}`);
+      if (!response.ok) throw new Error('Failed to load template');
+      
+      const data = await response.json();
+      const template = data.template;
+      
+      // Load template data into form
+      setFormData(prev => ({
+        ...prev,
+        description: template.description || '',
+        emailSubject: template.emailSubject || '',
+        emailContent: template.emailContent || '',
+        smsContent: template.smsContent || '',
+        selectedFilters: template.selectedFilters || [],
+        customerSegments: template.customerSegments || [],
+        // Note: Attachments are file names, not actual files
+        attachments: []
+      }));
+      
+      setSuccess('Template loaded successfully!');
+      console.log('Template loaded:', template);
+    } catch (error) {
+      console.error('Error loading template:', error);
+      alert('Failed to load template. Please try again.');
+    }
   };
 
   console.log('Rendering CampaignCreation, formData:', formData);
 
   return (
+    <div>
+      <Navbar />
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
@@ -168,7 +544,21 @@ function CampaignCreation() {
           <p className="text-gray-600">
             Define your campaign's core details, target audience, and content to engage your customers effectively.
           </p>
+          {campaignId && (
+            <p className="text-sm text-green-600 mt-1">
+              ✓ Draft saved (ID: {campaignId})
+            </p>
+          )}
         </div>
+        {autoSaving && (
+          <div className="flex items-center text-blue-600">
+            <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span className="text-sm">Saving...</span>
+          </div>
+        )}
       </div>
 
       {/* Success Message */}
@@ -180,8 +570,8 @@ function CampaignCreation() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Load Template Section */}
-        {templates.length > 0 && (
+        {/* Load Template Section - Only show when creating new campaign, not when editing */}
+        {!campaignId && templates.length > 0 && (
           <div className="bg-white p-6 rounded-lg shadow">
             <h3 className="text-lg font-semibold mb-4">Load from Template</h3>
             <div className="mb-4">
@@ -192,11 +582,12 @@ function CampaignCreation() {
                 <select
                   className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   onChange={(e) => e.target.value && handleLoadTemplate(e.target.value)}
+                  defaultValue=""
                 >
                   <option value="">Select a template...</option>
                   {templates.map(template => (
-                    <option key={template.templateId} value={template.templateId}>
-                      {template.name}
+                    <option key={template._id} value={template._id}>
+                      {template.name} {template.usageCount > 0 ? `(Used ${template.usageCount}x)` : ''}
                     </option>
                   ))}
                 </select>
@@ -205,6 +596,12 @@ function CampaignCreation() {
                 Found {templates.length} saved template{templates.length !== 1 ? 's' : ''}
               </p>
             </div>
+          </div>
+        )}
+
+        {!campaignId && isLoadingTemplates && (
+          <div className="bg-white p-6 rounded-lg shadow text-center">
+            <p className="text-gray-600">Loading templates...</p>
           </div>
         )}
 
@@ -238,29 +635,46 @@ function CampaignCreation() {
 
         {/* Targeting Section */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Targeting</h2>
+          <h2 className="text-lg font-semibold mb-4">
+            Targeting
+            {autoSaving && <span className="text-sm text-blue-600 ml-2">(Saving...)</span>}
+          </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
+                  Start Date <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="date"
                   id="startDate"
                   name="startDate"
                   value={formData.startDate}
                   onChange={handleChange}
+                  required
+                  onFocus={() => {
+                    if (currentStep === 'basic') {
+                      setCurrentStep('targeting');
+                      // Auto-save disabled
+                      // autoSaveCampaign(formData);
+                    }
+                  }}
                   className="w-full p-2 border border-gray-300 rounded"
                 />
               </div>
               <div>
-                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
+                  End Date <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="date"
                   id="endDate"
                   name="endDate"
                   value={formData.endDate}
                   onChange={handleChange}
+                  required
+                  min={formData.startDate}
                   className="w-full p-2 border border-gray-300 rounded"
                 />
               </div>
@@ -393,7 +807,10 @@ function CampaignCreation() {
 
         {/* Content Section */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Content</h2>
+          <h2 className="text-lg font-semibold mb-4">
+            Content
+            {autoSaving && <span className="text-sm text-blue-600 ml-2">(Saving...)</span>}
+          </h2>
           
           <div className="space-y-4">
             <div>
@@ -404,6 +821,13 @@ function CampaignCreation() {
                 name="emailSubject"
                 value={formData.emailSubject}
                 onChange={handleChange}
+                onFocus={() => {
+                  if (currentStep === 'targeting') {
+                    setCurrentStep('content');
+                    // Auto-save disabled
+                    // autoSaveCampaign(formData);
+                  }
+                }}
                 placeholder="Enter email subject"
                 className="w-full p-2 border border-gray-300 rounded"
               />
@@ -624,13 +1048,15 @@ function CampaignCreation() {
           >
             Clear Form
           </button>
+          
           <button
             type="button"
             onClick={handleSaveAsDraft}
-            className="px-4 py-2 text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+            className="px-4 py-2 text-white bg-gray-600 rounded hover:bg-gray-700 transition-colors"
           >
             Save as Draft
           </button>
+          
           <button
             type="submit"
             className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
@@ -639,6 +1065,7 @@ function CampaignCreation() {
           </button>
         </div>
       </form>
+    </div>
     </div>
   );
 }
