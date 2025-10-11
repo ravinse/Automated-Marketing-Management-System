@@ -31,12 +31,17 @@ const Navbarm = () => {
   }, []);
 
   const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('userRole');
-      navigate('/login');
-    }
+    // Close dropdown first
+    setIsDropdownOpen(false);
+    
+    // Clear localStorage completely
+    localStorage.clear();
+    
+    // Small delay to ensure state updates
+    setTimeout(() => {
+      // Navigate to login page
+      window.location.href = '/login';
+    }, 100);
   };
 
   const toggleDropdown = () => {
