@@ -9,12 +9,22 @@ const Forgotpass = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage("📧 Sending reset email...");
+    
     try {
       const res = await API.post("/auth/forgot-password", { email });
-      setMessage(`✅ Reset token sent! (Dev mode: ${res.data.resetToken})`);
-      // 👉 In production, token ekak email ekata yanawa
+      
+      if (res.data.success) {
+        // Email sent successfully
+        setMessage(`✅ ${res.data.message}`);
+      } else {
+        // Email failed but token provided for development
+        setMessage(`⚠️ ${res.data.message}${res.data.resetLink ? `\n🔗 Development Link: ${res.data.resetLink}` : ''}`);
+      }
     } catch (err) {
-      setMessage("❌ " + (err.response?.data?.error || "Something went wrong"));
+      console.error("Forgot password error:", err);
+      const errorMessage = err.response?.data?.error || "Failed to send reset email. Please try again.";
+      setMessage("❌ " + errorMessage);
     }
   };
   return (
@@ -54,8 +64,14 @@ const Forgotpass = () => {
               </button>
             </form>
             {message && (
-              <div className="mt-4 text-center text-sm text-gray-700">
-                {message}
+              <div className={`mt-4 p-3 rounded-md text-sm ${
+                message.includes('❌') ? 'bg-red-50 text-red-700 border border-red-200' : 
+                message.includes('✅') ? 'bg-green-50 text-green-700 border border-green-200' :
+                'bg-blue-50 text-blue-700 border border-blue-200'
+              }`}>
+                {message.split('\n').map((line, index) => (
+                  <div key={index}>{line}</div>
+                ))}
               </div>
             )}
         </div>

@@ -29,7 +29,9 @@ import TemplateT from "./team member/TemplateT";
 import CreatecampaingT from "./team member/createcampaingT";
 import Campaingreviewt from "./team member/campaingreviewt";
 
-
+// Settings
+import Settings from './components/Settings';
+import UserManagement from './components/UserManagement';
 
 // Owner
 import OwnerDash from './owner/homepage/OwnerDash';
@@ -71,6 +73,8 @@ function App() {
         <Route path="/createcampaingm" element={<CreatecampaingM />} />
         <Route path="/pendingapproval" element={<PendingApproval />} />
         <Route path ="/owner" element={<OwnerDash />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/user-management" element={<UserManagement />} />
         
         
 

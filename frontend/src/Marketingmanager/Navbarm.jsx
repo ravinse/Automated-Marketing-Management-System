@@ -2,20 +2,49 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Logo from '../assets/logo.png'
 import profile from '../assets/profile.png'
+import API from '../api'
 
 const Navbarm = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const [userName, setUserName] = useState('');
   const [userRole, setUserRole] = useState('');
+  const [loading, setLoading] = useState(true);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  // Get user email and role from localStorage
+  // Fetch user data from API
   useEffect(() => {
-    const email = localStorage.getItem('userEmail') || 'user@example.com';
-    const role = localStorage.getItem('userRole') || 'Marketing Manager';
-    setUserEmail(email);
-    setUserRole(role);
+    const fetchUserData = async () => {
+      try {
+        const response = await API.get('/auth/profile');
+        const userData = response.data;
+        
+        setUserEmail(userData.email);
+        setUserName(userData.name);
+        setUserRole(userData.role);
+        
+        // Also update localStorage for backward compatibility
+        localStorage.setItem('userEmail', userData.email);
+        localStorage.setItem('userName', userData.name);
+        localStorage.setItem('userRole', userData.role);
+        
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+        // Fallback to localStorage if API fails
+        const email = localStorage.getItem('userEmail') || 'user@example.com';
+        const name = localStorage.getItem('userName') || 'User';
+        const role = localStorage.getItem('userRole') || 'Marketing Manager';
+        
+        setUserEmail(email);
+        setUserName(name);
+        setUserRole(role);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
   }, []);
 
   // Close dropdown when clicking outside
@@ -35,7 +64,8 @@ const Navbarm = () => {
       localStorage.removeItem('token');
       localStorage.removeItem('userEmail');
       localStorage.removeItem('userRole');
-      navigate('/login');
+      localStorage.removeItem('role');
+      navigate('/');
     }
   };
 
@@ -92,7 +122,8 @@ const Navbarm = () => {
               {/* User Email */}
               <div className="px-4 py-3 border-b border-gray-200">
                 <p className="text-sm text-gray-500">Signed in as</p>
-                <p className="text-sm font-semibold text-gray-800 truncate">{userEmail}</p>
+                <p className="text-sm font-semibold text-gray-800 truncate">{userName}</p>
+                <p className="text-xs text-gray-600 truncate">{userEmail}</p>
               </div>
 
               {/* Settings */}
@@ -129,7 +160,7 @@ const Navbarm = () => {
         {/* User Info Button */}
         <button className="flex flex-col items-start px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
           <span className="text-sm font-bold text-gray-800">{userRole}</span>
-          <span className="text-xs text-gray-600">{userEmail}</span>
+          <span className="text-xs text-gray-600">{loading ? 'Loading...' : userName}</span>
         </button>
       </div>
     </div>

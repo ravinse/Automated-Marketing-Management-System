@@ -4,8 +4,32 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const User = require("../models/User");
 const nodeMailer = require("nodemailer");
+const { authMiddleware } = require("../middleware/authMiddleware");
 
 const router = express.Router();
+
+// @route GET /api/auth/profile
+// @desc Get current user profile
+// @access Private
+router.get("/profile", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    
+    res.json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      username: user.username,
+      role: user.role
+    });
+  } catch (err) {
+    console.error("Profile fetch error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 // @route POST /api/auth/login
 router.post("/login", async (req, res) => {
@@ -86,47 +110,137 @@ router.put("/change-password", async (req, res) => {
 // @route POST /api/auth/forgot-password
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
+  console.log(`🔍 Password reset request for: ${email}`);
 
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) {
+      console.log(`❌ User not found: ${email}`);
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    console.log(`✅ User found: ${user.email}`);
 
     // Generate reset token
     const resetToken = crypto.randomBytes(32).toString("hex");
 
     // Hash token before saving (for security)
     const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+    console.log(`🔑 Generated reset token: ${resetToken.substring(0, 10)}...`);
 
     user.resetPasswordToken = hashedToken;
     user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 min
 
     await user.save();
+    console.log(`💾 Reset token saved for user: ${user.email}`);
 
-    // Reset link
-    const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+  // Reset link (use env FRONTEND_URL with fallback)
+  const frontendBase = process.env.FRONTEND_URL || 'http://localhost:5175';
+  const resetLink = `${frontendBase.replace(/\/$/, '')}/reset-password/${resetToken}`;
 
-    // send mail
-    const transporter = nodeMailer.createTransport({
-      service: "Gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    // Send email (with error handling)
+    try {
+      console.log(`📧 Attempting to send email to: ${email}`);
+      console.log(`📧 Using email credentials: ${process.env.EMAIL_USER}`);
+      
+      // Prefer explicit SMTP to avoid service auto-detection issues
+      const transporter = nodeMailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 465,
+        secure: (process.env.SMTP_SECURE || 'true') === 'true', // true for 465, false for 587
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+        tls: {
+          ciphers: 'SSLv3',
+          rejectUnauthorized: false,
+        },
+        debug: true,
+        logger: true,
+      });
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Password Reset",
-      html: `<p>You requested a password reset.</p>
-             <p>Click <a href="${resetLink}">here</a> to reset your password.</p>
-             <p>This link will expire in 10 minutes.</p>`,
-    });
+      // Verify connection configuration
+      console.log('🔍 Verifying email transporter...');
+      await transporter.verify();
+      console.log('✅ Email transporter verified successfully');
 
-    res.json({ message: "Password reset link sent to email" });
+      const mailOptions = {
+        from: `"Marketing Management System" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: "Password Reset - Automated Marketing System",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #00AF96; margin: 0;">Marketing Management System</h1>
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 30px; border-radius: 10px; border-left: 4px solid #00AF96;">
+              <h2 style="color: #333; margin-top: 0;">Password Reset Request</h2>
+              <p style="color: #555; line-height: 1.6;">Hello,</p>
+              <p style="color: #555; line-height: 1.6;">
+                We received a request to reset the password for your account (${email}).
+              </p>
+              <p style="color: #555; line-height: 1.6;">
+                Click the button below to reset your password:
+              </p>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${resetLink}" 
+                   style="background-color: #00AF96; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                  Reset My Password
+                </a>
+              </div>
+              
+              <p style="color: #555; line-height: 1.6;">
+                <strong>This link will expire in 10 minutes</strong> for security reasons.
+              </p>
+              
+              <p style="color: #555; line-height: 1.6;">
+                If you didn't request this password reset, please ignore this email. Your password will remain unchanged.
+              </p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px; color: #888; font-size: 12px;">
+              <p>This email was sent by Marketing Management System</p>
+              <p>If the button doesn't work, copy and paste this link:</p>
+              <p style="word-break: break-all;">${resetLink}</p>
+            </div>
+          </div>
+        `,
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log(`✅ Reset email sent successfully to: ${email}`);
+
+      res.json({ 
+        message: "Password reset link has been sent to your email address. Please check your inbox and spam folder.",
+        success: true
+      });
+
+    } catch (emailError) {
+      console.error("❌ Email sending failed:", emailError.message);
+      
+      // For development - still provide the token
+      if (process.env.NODE_ENV === 'development') {
+        res.json({ 
+          message: "Email service unavailable. Use this token for testing", 
+          resetToken,
+          resetLink,
+          success: false,
+          emailError: emailError.message
+        });
+      } else {
+        // In production - don't expose the token
+        res.status(500).json({ 
+          error: "Failed to send reset email. Please try again later or contact support.",
+          success: false
+        });
+      }
+    }
     console.log(`🔑 Reset link sent to ${email}: ${resetLink}`);
   } catch (err) {
-    console.error(err);
+    console.error("Forgot password error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -136,16 +250,24 @@ router.post("/reset-password/:token", async (req, res) => {
   const { token } = req.params;
   const { newPassword } = req.body;
 
+  console.log(`🔑 Password reset attempt with token: ${token}`);
+
   try {
     // Hash token again to match DB
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    console.log(`🔍 Looking for user with hashed token: ${hashedToken.substring(0, 10)}...`);
 
     const user = await User.findOne({
       resetPasswordToken: hashedToken,
       resetPasswordExpire: { $gt: Date.now() },
     });
 
-    if (!user) return res.status(400).json({ error: "Invalid or expired token" });
+    if (!user) {
+      console.log("❌ No user found with valid reset token");
+      return res.status(400).json({ error: "Invalid or expired token" });
+    }
+
+    console.log(`✅ Found user: ${user.email}`);
 
     // Hash new password
     const salt = await bcrypt.genSalt(10);
@@ -156,33 +278,13 @@ router.post("/reset-password/:token", async (req, res) => {
     user.resetPasswordExpire = undefined;
 
     await user.save();
+    console.log(`✅ Password reset successful for: ${user.email}`);
 
     res.json({ message: "Password reset successful" });
   } catch (err) {
+    console.error("Reset password error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
-
-// Reset password
-router.post("/reset-password/:token", async (req, res) => {
-  const { token } = req.params;
-  const { newPassword } = req.body;
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(newPassword, salt);
-    await user.save();
-
-    res.json({ message: "✅ Password reset successful!" });
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ error: "Invalid or expired token" });
-  }
-});
-
 
 module.exports = router;

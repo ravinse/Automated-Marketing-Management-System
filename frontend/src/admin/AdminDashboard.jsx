@@ -1,7 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const App = () => {
+  const navigate = useNavigate();
+  
   const user = {
     name: "Admin User",
     avatar: "https://placehold.co/100x100/A0A0A0/FFFFFF?text=AU"
@@ -25,13 +27,29 @@ const App = () => {
   };
 
   const navItems = [
-    { name: "System Settings" },
-    { name: "User Management" },
+    { name: "Settings", link: "/settings" },
+    { name: "User Management", link: "/user-management" },
   ];
 
-  const NavItem = ({ children }) => (
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to logout?')) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('role');
+      navigate('/');
+    }
+  };
+
+  const NavItem = ({ children, link }) => (
     <div className="flex items-center space-x-2 p-2">
-      <span className="text-gray-600 font-medium">{children}</span>
+      {link ? (
+        <Link to={link} className="text-gray-600 font-medium hover:text-gray-800 transition-colors">
+          {children}
+        </Link>
+      ) : (
+        <span className="text-gray-600 font-medium">{children}</span>
+      )}
     </div>
   );
 
@@ -54,9 +72,12 @@ const App = () => {
         </div>
         <div className="flex items-center space-x-6">
           {navItems.map((item, index) => (
-            <NavItem key={index}>{item.name}</NavItem>
+            <NavItem key={index} link={item.link}>{item.name}</NavItem>
           ))}
-          <button className="bg-gray-200 text-gray-800 font-medium px-4 py-2 rounded-full shadow-inner hover:bg-gray-300 transition-colors">
+          <button 
+            onClick={handleLogout}
+            className="bg-gray-200 text-gray-800 font-medium px-4 py-2 rounded-full shadow-inner hover:bg-gray-300 transition-colors"
+          >
             Logout
           </button>
           <div className="flex items-center space-x-2">
