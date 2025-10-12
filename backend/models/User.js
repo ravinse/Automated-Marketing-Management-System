@@ -11,6 +11,9 @@ const UserSchema = new mongoose.Schema({
     enum: ["admin", "team member", "manager", "owner"],
     default: "team member",
   },
+  phone: { type: String },
+  department: { type: String },
+  profileImage: { type: String }, // URL/path to profile avatar
   resetPasswordToken:{type:String}, //reset password token
   resetPasswordExpire:{type:Date}, //token expire time
 });

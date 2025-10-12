@@ -35,6 +35,10 @@ import UserManagement from './components/UserManagement';
 
 // Owner
 import OwnerDash from './owner/homepage/OwnerDash';
+import OwnerFeedback from './owner/Feedback';
+import OwnerCampaignPerformance from './owner/CampaignPerformance';
+import OwnerStrategicDashboard from './owner/StrategicDashboard';
+import OwnerCampaignOverview from './owner/CampaignOverview';
 
 function App() {
   return (
@@ -72,7 +76,11 @@ function App() {
         <Route path="/campaingreviewt" element={<Campaingreviewt />} />
         <Route path="/createcampaingm" element={<CreatecampaingM />} />
         <Route path="/pendingapproval" element={<PendingApproval />} />
-        <Route path ="/owner" element={<OwnerDash />} />
+  <Route path ="/owner" element={<OwnerDash />} />
+  <Route path ="/owner/feedback" element={<OwnerFeedback />} />
+  <Route path ="/owner/performance" element={<OwnerCampaignPerformance />} />
+  <Route path ="/owner/strategic" element={<OwnerStrategicDashboard />} />
+  <Route path ="/owner/campaign-overview" element={<OwnerCampaignOverview />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/user-management" element={<UserManagement />} />
         

@@ -1,9 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Navbarm from '../Marketingmanager/Navbarm';
+import Navbart from '../team member/Navbart';
+import OwnerNavbar from '../owner/homepage/OwnerNavbar';
 import API from '../api';
 
 const Settings = () => {
+  // Derive backend origin (e.g., http://localhost:5001) from API baseURL
+  const backendOrigin = (API?.defaults?.baseURL || '')
+    .replace(/\/?api\/?$/, '');
+  const resolveAvatarUrl = useCallback((val) => {
+    if (!val) return null;
+    if (typeof val !== 'string') return null;
+    if (val.startsWith('http') || val.startsWith('data:')) return val;
+    // assume backend relative like /uploads/...
+    return `${backendOrigin}${val}`;
+  }, [backendOrigin]);
   const [activeTab, setActiveTab] = useState('profile');
   const [userInfo, setUserInfo] = useState({
     name: '',
@@ -11,7 +23,8 @@ const Settings = () => {
     username: '',
     role: '',
     phone: '',
-    department: ''
+    department: '',
+    profileImage: null,
   });
   
   const [loading, setLoading] = useState(true);
@@ -28,25 +41,30 @@ const Settings = () => {
     passwordExpiry: '90'
   });
 
-  const [preferences, setPreferences] = useState({
-    timezone: 'UTC',
-    dateFormat: 'MM/DD/YYYY'
-  });
+  // Avatar upload state
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState('');
 
   // Load user data from API
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const response = await API.get('/auth/profile');
-        const userData = response.data;
+  const userData = response.data;
         
         setUserInfo(prev => ({
           ...prev,
           name: userData.name,
           email: userData.email,
           username: userData.username,
-          role: userData.role
+          role: userData.role,
+          profileImage: userData.profileImage || null,
         }));
+        if (userData.profileImage) {
+          setAvatarPreview(resolveAvatarUrl(userData.profileImage));
+        }
         
       } catch (error) {
         console.error('Failed to fetch user data:', error);
@@ -59,7 +77,8 @@ const Settings = () => {
           ...prev,
           email: email || 'user@example.com',
           role: role || 'team member',
-          name: name || 'User'
+          name: name || 'User',
+          profileImage: null,
         }));
       } finally {
         setLoading(false);
@@ -67,7 +86,7 @@ const Settings = () => {
     };
 
     fetchUserData();
-  }, []);
+  }, [resolveAvatarUrl]);
 
   const handleUserInfoChange = (field, value) => {
     setUserInfo(prev => ({
@@ -90,28 +109,105 @@ const Settings = () => {
     }));
   };
 
-  const handlePreferenceChange = (field, value) => {
-    setPreferences(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const onAvatarFileChange = (e) => {
+    setAvatarError('');
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    const allowed = ['image/png', 'image/jpeg', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      setAvatarError('Please select a PNG, JPG, or WEBP image.');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setAvatarError('Image size must be 2MB or smaller.');
+      return;
+    }
+
+    setAvatarFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setAvatarPreview(reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  const uploadAvatar = async () => {
+    if (!avatarFile) {
+      setAvatarError('Please choose an image first.');
+      return;
+    }
+    try {
+      setAvatarUploading(true);
+      setAvatarError('');
+      const form = new FormData();
+      form.append('avatar', avatarFile);
+      const res = await API.post('/auth/profile/avatar', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+  const newUrl = resolveAvatarUrl(res.data.profileImage);
+      setUserInfo(prev => ({ ...prev, profileImage: newUrl }));
+      setAvatarPreview(newUrl);
+    } catch (err) {
+      console.error('Avatar upload failed:', err);
+      const msg = err?.response?.data?.error || 'Failed to upload image';
+      setAvatarError(msg);
+    } finally {
+      setAvatarUploading(false);
+    }
   };
 
   const handleSave = () => {
-    // Here you would typically save to your backend
-    alert('Settings saved successfully!');
+    saveProfile();
+  };
+
+  const [saveStatus, setSaveStatus] = useState({ loading: false, message: '', error: '' });
+
+  const saveProfile = async () => {
+    try {
+      setSaveStatus({ loading: true, message: '', error: '' });
+      const payload = {
+        name: userInfo.name,
+        email: userInfo.email,
+        username: userInfo.username,
+        phone: userInfo.phone,
+        department: userInfo.department,
+      };
+      const res = await API.put('/auth/profile', payload);
+      const updated = res.data?.user;
+      if (updated) {
+        setUserInfo(prev => ({
+          ...prev,
+          name: updated.name,
+          email: updated.email,
+          username: updated.username,
+          role: updated.role,
+          phone: updated.phone || '',
+          department: updated.department || '',
+          profileImage: updated.profileImage || prev.profileImage,
+        }));
+      }
+      setSaveStatus({ loading: false, message: 'Settings saved successfully!', error: '' });
+    } catch (err) {
+      const msg = err?.response?.data?.error || 'Failed to save profile';
+      setSaveStatus({ loading: false, message: '', error: msg });
+    }
   };
 
   const tabs = [
     { id: 'profile', name: 'Profile', icon: '👤' },
     { id: 'notifications', name: 'Notifications', icon: '🔔' },
     { id: 'security', name: 'Security', icon: '🔒' },
-    { id: 'preferences', name: 'Preferences', icon: '⚙️' }
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbarm />
+      {/* Role-aware navbar */}
+      {(() => {
+        const role = (userInfo.role || localStorage.getItem('role') || '').toLowerCase();
+        if (role === 'team member') return <Navbart />;
+        if (role === 'owner') return <OwnerNavbar />;
+        // admin and manager use Navbarm; it's role-aware for Admin Home & User Management
+        return <Navbarm />;
+      })()}
       
       <div className="max-w-7xl mx-auto py-8 px-4">
         {/* Header */}
@@ -159,6 +255,40 @@ const Settings = () => {
                       </div>
                     ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Avatar uploader embedded in Profile */}
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Profile Image</label>
+                        <div className="flex items-start gap-6">
+                          <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 border flex items-center justify-center">
+                            {avatarPreview ? (
+                              <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-gray-400 text-sm">No Image</span>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg,image/webp"
+                              onChange={onAvatarFileChange}
+                              className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
+                            />
+                            {avatarError && (
+                              <p className="text-sm text-red-600 mt-2">{avatarError}</p>
+                            )}
+                            <div className="mt-3">
+                              <button
+                                onClick={uploadAvatar}
+                                disabled={avatarUploading}
+                                className={`px-4 py-2 rounded-lg text-white ${avatarUploading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} transition-colors`}
+                              >
+                                {avatarUploading ? 'Uploading...' : 'Upload Image'}
+                              </button>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">PNG, JPG, or WEBP up to 2MB.</p>
+                          </div>
+                        </div>
+                      </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Full Name
@@ -323,47 +453,20 @@ const Settings = () => {
                   </div>
                 )}
 
-                {/* Preferences Tab */}
-                {activeTab === 'preferences' && (
-                  <div>
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-6">Application Preferences</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Timezone
-                        </label>
-                        <select
-                          value={preferences.timezone}
-                          onChange={(e) => handlePreferenceChange('timezone', e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="UTC">UTC</option>
-                          <option value="EST">Eastern Time</option>
-                          <option value="PST">Pacific Time</option>
-                          <option value="GMT">Greenwich Mean Time</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Date Format
-                        </label>
-                        <select
-                          value={preferences.dateFormat}
-                          onChange={(e) => handlePreferenceChange('dateFormat', e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                          <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                          <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                {/* Removed standalone Profile Image tab; integrated into Profile */}
 
                 {/* Save Button */}
                 <div className="mt-8 pt-6 border-t border-gray-200">
+                  {saveStatus.error && (
+                    <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
+                      {saveStatus.error}
+                    </div>
+                  )}
+                  {saveStatus.message && (
+                    <div className="mb-4 text-sm text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2">
+                      {saveStatus.message}
+                    </div>
+                  )}
                   <div className="flex justify-end space-x-4">
                     <button
                       type="button"
@@ -373,9 +476,10 @@ const Settings = () => {
                     </button>
                     <button
                       onClick={handleSave}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      disabled={saveStatus.loading}
+                      className={`px-6 py-2 text-white rounded-lg transition-colors ${saveStatus.loading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
                     >
-                      Save Changes
+                      {saveStatus.loading ? 'Saving...' : 'Save Changes'}
                     </button>
                   </div>
                 </div>

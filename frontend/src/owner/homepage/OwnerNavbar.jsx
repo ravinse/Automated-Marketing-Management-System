@@ -77,20 +77,20 @@ const Navbar = () => {
         {/* Left side - Logo and Navigation */}
         <div className="flex items-center space-x-8">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
+          <button onClick={() => navigate('/owner')} className="flex items-center space-x-2" title="Owner Home">
             <div className="w-6 h-6 bg-black rounded-sm flex items-center justify-center">
               <span className="text-white text-xs font-bold">■</span>
             </div>
             <span className="text-lg font-semibold text-gray-900">Campaign Central</span>
-          </div>
+          </button>
           
           {/* Navigation Links */}
           <div className="flex items-center space-x-6">
-            <a href="#" className="text-gray-900 font-medium hover:text-gray-700">Campaigns</a>
-            <a href="#" className="text-gray-500 hover:text-gray-700">Templates</a>
-            <a href="#" className="text-gray-500 hover:text-gray-700">Reports</a>
-            <a href="#" className="text-gray-500 hover:text-gray-700">Automation</a>
-            <a href="#" className="text-gray-500 hover:text-gray-700">Audience</a>
+            <Link to="/owner/performance" className="text-gray-900 font-medium hover:text-gray-700">Dashboard</Link>
+            <Link to="/owner/campaign-overview" className="text-gray-500 hover:text-gray-700">Campaigns</Link>
+            <Link to="/owner/feedback" className="text-gray-500 hover:text-gray-700">Feedback</Link>
+            <Link to="/owner/strategic" className="text-gray-500 hover:text-gray-700">Reports</Link>
+            <Link to="/owner/strategic" className="text-gray-500 hover:text-gray-700">Settings</Link>
           </div>
         </div>
         

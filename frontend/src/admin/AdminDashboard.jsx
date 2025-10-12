@@ -1,13 +1,8 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import Navbarm from '../Marketingmanager/Navbarm';
 
 const App = () => {
-  const navigate = useNavigate();
   
-  const user = {
-    name: "Admin User",
-    avatar: "https://placehold.co/100x100/A0A0A0/FFFFFF?text=AU"
-  };
 
   const dashboardData = {
     totalUsers: 150,
@@ -26,33 +21,6 @@ const App = () => {
     },
   };
 
-  const navItems = [
-    { name: "Settings", link: "/settings" },
-    { name: "User Management", link: "/user-management" },
-  ];
-
-  const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('role');
-      navigate('/');
-    }
-  };
-
-  const NavItem = ({ children, link }) => (
-    <div className="flex items-center space-x-2 p-2">
-      {link ? (
-        <Link to={link} className="text-gray-600 font-medium hover:text-gray-800 transition-colors">
-          {children}
-        </Link>
-      ) : (
-        <span className="text-gray-600 font-medium">{children}</span>
-      )}
-    </div>
-  );
-
   const Card = ({ title, value, className = "" }) => (
     <div className={`bg-white rounded-xl shadow-md p-6 ${className}`}>
       <h3 className="text-gray-500 font-medium">{title}</h3>
@@ -62,29 +30,8 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans">
-      {/* Top Navigation Bar */}
-      <nav className="bg-white p-4 shadow-sm flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <svg className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-          </svg>
-          <span className="text-lg font-bold text-gray-800">Retail Automation</span>
-        </div>
-        <div className="flex items-center space-x-6">
-          {navItems.map((item, index) => (
-            <NavItem key={index} link={item.link}>{item.name}</NavItem>
-          ))}
-          <button 
-            onClick={handleLogout}
-            className="bg-gray-200 text-gray-800 font-medium px-4 py-2 rounded-full shadow-inner hover:bg-gray-300 transition-colors"
-          >
-            Logout
-          </button>
-          <div className="flex items-center space-x-2">
-            <img className="h-10 w-10 rounded-full border-2 border-gray-300" src={user.avatar} alt="User Avatar" />
-          </div>
-        </div>
-      </nav>
+      {/* Global Navbar (second image style) */}
+      <Navbarm />
 
       {/* Main Content */}
       <div className="p-8">

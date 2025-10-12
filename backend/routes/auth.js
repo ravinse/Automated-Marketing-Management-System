@@ -4,9 +4,32 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const User = require("../models/User");
 const nodeMailer = require("nodemailer");
+const multer = require('multer');
+const path = require('path');
 const { authMiddleware } = require("../middleware/authMiddleware");
 
 const router = express.Router();
+
+// Multer storage for avatars
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, '..', 'uploads'));
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `avatar_${req.user?.id || 'guest'}_${Date.now()}${ext}`);
+  }
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.png', '.jpg', '.jpeg', '.webp'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (!allowed.includes(ext)) return cb(new Error('Only images are allowed'));
+    cb(null, true);
+  }
+});
 
 // @route GET /api/auth/profile
 // @desc Get current user profile
@@ -23,11 +46,79 @@ router.get("/profile", authMiddleware, async (req, res) => {
       name: user.name,
       email: user.email,
       username: user.username,
-      role: user.role
+      role: user.role,
+      phone: user.phone || '',
+      department: user.department || '',
+      profileImage: user.profileImage || null
     });
   } catch (err) {
     console.error("Profile fetch error:", err);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+// @route PUT /api/auth/profile
+// @desc Update current user's profile (editable fields only)
+// @access Private
+router.put('/profile', authMiddleware, async (req, res) => {
+  try {
+    const { name, email, username, phone, department } = req.body || {};
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Basic validations (optional)
+    if (email && !/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    // Apply allowed updates only
+    if (typeof name === 'string') user.name = name.trim();
+    if (typeof email === 'string') user.email = email.trim();
+    if (typeof username === 'string') user.username = username.trim();
+    if (typeof phone === 'string') user.phone = phone.trim();
+    if (typeof department === 'string') user.department = department.trim();
+
+    await user.save();
+
+    res.json({
+      message: 'Profile updated successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+        phone: user.phone || '',
+        department: user.department || '',
+        profileImage: user.profileImage || null,
+      }
+    });
+  } catch (err) {
+    console.error('Profile update error:', err);
+    // Handle duplicate key errors for email/username
+    if (err && err.code === 11000) {
+      const field = Object.keys(err.keyPattern || {})[0] || 'field';
+      return res.status(409).json({ error: `${field} already in use` });
+    }
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// @route POST /api/auth/profile/avatar
+// @desc Upload/update profile image
+// @access Private
+router.post('/profile/avatar', authMiddleware, upload.single('avatar'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    const relativePath = `/uploads/${req.file.filename}`;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    user.profileImage = relativePath;
+    await user.save();
+    res.json({ message: 'Avatar updated', profileImage: relativePath });
+  } catch (err) {
+    console.error('Avatar upload error:', err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

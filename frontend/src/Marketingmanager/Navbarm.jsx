@@ -73,23 +73,48 @@ const Navbarm = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
+  // Compute landing path based on role
+  const getHomePath = (role) => {
+    switch ((role || '').toLowerCase()) {
+      case 'admin':
+        return '/ahome';
+      case 'manager':
+        return '/performance';
+      case 'owner':
+        return '/owner';
+      case 'team member':
+        return '/thome';
+      default:
+        return '/';
+    }
+  };
+  const homePath = getHomePath(userRole);
+
   return (
     <div className="w-full border-b-2 p-3 border-gray-200 flex bg-white relative">
       {/* Logo */}
-      <img src={Logo} alt="logo" className="w-14 h-8 ml-4 mt-2" />
+      <button onClick={() => navigate(homePath)} className="ml-4 mt-2" title="Home">
+        <img src={Logo} alt="logo" className="w-14 h-8" />
+      </button>
 
       {/* Nav links */}
       <div className="ml-10">
         <nav className="flex sm:justify-center space-x-4">
-          {[
-            ['Dashboard', '/performance'],
-            ['Campaigns', '/Campaign'],
-            ['Templates', '/Template'],
-            ['Performance', '/performanceoverview'],
-            ['Feedback', '/Feedback'],
-            
-            
-          ].map(([title, url]) => (
+          {(() => {
+            const items = [
+              [(userRole || '').toLowerCase() === 'admin' ? 'Admin Home' : 'Home', homePath],
+              ['Dashboard', '/performance'],
+              ['Campaigns', '/Campaign'],
+              ['Templates', '/Template'],
+              ['Performance', '/performanceoverview'],
+              ['Feedback', '/Feedback'],
+            ];
+            if ((userRole || '').toLowerCase() === 'admin') {
+              // Add User Management for admins
+              items.splice(2, 0, ['User Management', '/user-management']);
+            }
+            return items;
+          })().map(([title, url]) => (
             <Link
               to={url}
               key={title}

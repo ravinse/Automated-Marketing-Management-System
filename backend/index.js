@@ -11,6 +11,17 @@ app.use(cors({
   origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176", "http://localhost:5177", "http://localhost:5178", "http://localhost:5179", "http://localhost:5180"]
 })); // frontend port
 app.use(express.json());
+// Serve uploaded files
+const path = require('path');
+const fs = require('fs');
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, 'uploads');
+try {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+} catch (e) {
+  console.error('Failed to ensure uploads directory exists:', e);
+}
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Connect to DB
 connectDB();

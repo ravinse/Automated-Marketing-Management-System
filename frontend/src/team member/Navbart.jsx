@@ -74,21 +74,40 @@ const Navbart = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
+  // Landing path for team member (fixed), but compute if role comes through
+  const getHomePath = (role) => {
+    switch ((role || '').toLowerCase()) {
+      case 'team member':
+        return '/thome';
+      case 'manager':
+        return '/performance';
+      case 'admin':
+        return '/ahome';
+      case 'owner':
+        return '/owner';
+      default:
+        return '/thome';
+    }
+  };
+  const homePath = getHomePath(userRole);
+
   return (
     <div className='w-full border-b-2 p-3 border-gray-200 flex bg-white'>
-      <img src={Logo} alt="logo" className='w-14 h-8 ml-4 mt-2' />
+      <button onClick={() => navigate(homePath)} className='ml-4 mt-2' title='Home'>
+        <img src={Logo} alt="logo" className='w-14 h-8' />
+      </button>
       <div className='ml-10'>
-      <nav className="flex sm:justify-center space-x-4">
-        {
-            [
-                ['Dashboard', '/thome'],
-                ['Templates', '/templatet'], 
-               ['Feedback', '/feedbackT'],
-            ].map(([title, url]) => (
-                <Link to={url} key={title} className="rounded-lg px-3 py-2 text-slate-700 font-medium hover:bg-slate-100 hover:text-slate-900">
-                    {title}</Link>
-            ))
-        }
+    <nav className="flex sm:justify-center space-x-4">
+    {[
+      ['Home', homePath],
+      ['Dashboard', '/thome'],
+      ['Templates', '/templatet'], 
+      ['Feedback', '/feedbackT'],
+    ].map(([title, url]) => (
+      <Link to={url} key={title} className="rounded-lg px-3 py-2 text-slate-700 font-medium hover:bg-slate-100 hover:text-slate-900">
+        {title}
+      </Link>
+    ))}
         </nav>
         </div>
       <div className="relative ml-auto mr-8 flex items-center">
