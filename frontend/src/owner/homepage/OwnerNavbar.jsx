@@ -3,6 +3,7 @@ import { Bell, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Profile from '../../assets/Profile.png';
 import API from '../../api';
+import Logo from '../../assets/logo.png';
 
 const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -78,10 +79,7 @@ const Navbar = () => {
         <div className="flex items-center space-x-8">
           {/* Logo */}
           <button onClick={() => navigate('/owner')} className="flex items-center space-x-2" title="Owner Home">
-            <div className="w-6 h-6 bg-black rounded-sm flex items-center justify-center">
-              <span className="text-white text-xs font-bold">■</span>
-            </div>
-            <span className="text-lg font-semibold text-gray-900">Campaign Central</span>
+            <img src={Logo} alt="Logo" className="h-8 w-14" />
           </button>
           
           {/* Navigation Links */}
