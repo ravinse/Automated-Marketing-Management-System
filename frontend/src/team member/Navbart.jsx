@@ -37,8 +37,8 @@ const Navbart = () => {
     
     // Small delay to ensure state updates
     setTimeout(() => {
-      // Navigate to login page
-      window.location.href = '/login';
+      // Navigate to root page
+      window.location.href = '/';
     }, 100);
   };
 
