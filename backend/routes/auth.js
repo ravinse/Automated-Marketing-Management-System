@@ -224,10 +224,20 @@ router.post("/forgot-password", async (req, res) => {
 
     await user.save();
     console.log(`💾 Reset token saved for user: ${user.email}`);
+    // In development, log full tokens to aid debugging (do not enable in production)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🔐 dev resetToken: ${resetToken}`);
+      console.log(`🔐 dev hashedToken: ${hashedToken}`);
+    }
 
-  // Reset link (use env FRONTEND_URL with fallback)
-  const frontendBase = process.env.FRONTEND_URL || 'http://localhost:5175';
-  const resetLink = `${frontendBase.replace(/\/$/, '')}/reset-password/${resetToken}`;
+  // Reset link: prefer explicit FRONTEND_URL, otherwise derive from request origin/referer (helps dev), final fallback to Vite default 5173
+  const frontendBase = (process.env.FRONTEND_URL && process.env.FRONTEND_URL.trim())
+    || req.get('origin')
+    || req.get('referer')
+    || 'http://localhost:5173';
+  const chosenBase = String(frontendBase).replace(/\/$/, '');
+  const resetLink = `${chosenBase}/reset-password/${resetToken}`;
+  console.log(`🔗 Using frontend base for reset link: ${chosenBase}`);
 
     // Send email (with error handling)
     try {
@@ -304,6 +314,16 @@ router.post("/forgot-password", async (req, res) => {
       await transporter.sendMail(mailOptions);
       console.log(`✅ Reset email sent successfully to: ${email}`);
 
+      // In development, include the resetToken in the response so developers can test the flow
+      if (process.env.NODE_ENV === 'development') {
+        return res.json({
+          message: "Password reset link has been sent to your email address. (Development mode: token included)",
+          success: true,
+          resetToken,
+          resetLink
+        });
+      }
+
       res.json({ 
         message: "Password reset link has been sent to your email address. Please check your inbox and spam folder.",
         success: true
@@ -355,6 +375,16 @@ router.post("/reset-password/:token", async (req, res) => {
 
     if (!user) {
       console.log("❌ No user found with valid reset token");
+
+      // Helpful debug: check if token exists but expired (development only)
+      if (process.env.NODE_ENV === 'development') {
+        const found = await User.findOne({ resetPasswordToken: hashedToken });
+        if (found) {
+          console.log('🔎 Token found but expired');
+          return res.status(400).json({ error: 'Token expired' });
+        }
+      }
+
       return res.status(400).json({ error: "Invalid or expired token" });
     }
 

@@ -146,6 +146,13 @@ const Settings = () => {
   const newUrl = resolveAvatarUrl(res.data.profileImage);
       setUserInfo(prev => ({ ...prev, profileImage: newUrl }));
       setAvatarPreview(newUrl);
+      // Persist and broadcast the updated profile image so navbars across the app can update
+      try {
+        localStorage.setItem('userProfileImage', newUrl);
+        window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: { profileImage: newUrl } }));
+      } catch (e) {
+        console.warn('Could not persist profile image to localStorage', e);
+      }
     } catch (err) {
       console.error('Avatar upload failed:', err);
       const msg = err?.response?.data?.error || 'Failed to upload image';
@@ -174,6 +181,7 @@ const Settings = () => {
       const res = await API.put('/auth/profile', payload);
       const updated = res.data?.user;
       if (updated) {
+        const resolvedProfileImage = updated.profileImage ? resolveAvatarUrl(updated.profileImage) : null;
         setUserInfo(prev => ({
           ...prev,
           name: updated.name,
@@ -182,8 +190,16 @@ const Settings = () => {
           role: updated.role,
           phone: updated.phone || '',
           department: updated.department || '',
-          profileImage: updated.profileImage || prev.profileImage,
+          profileImage: resolvedProfileImage || prev.profileImage,
         }));
+        if (resolvedProfileImage) {
+          try {
+            localStorage.setItem('userProfileImage', resolvedProfileImage);
+            window.dispatchEvent(new CustomEvent('userProfileUpdated', { detail: { profileImage: resolvedProfileImage } }));
+          } catch (e) {
+            console.warn('Could not persist profile image to localStorage', e);
+          }
+        }
       }
       setSaveStatus({ loading: false, message: 'Settings saved successfully!', error: '' });
     } catch (err) {

@@ -54,7 +54,7 @@ const Changepass = () => {
                   placeholder="Old Password"
                   value={form.oldPassword}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#28b584] mb-4"
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#28b584] mb-6"
                 />
                 <input
                   id="new-password-input"

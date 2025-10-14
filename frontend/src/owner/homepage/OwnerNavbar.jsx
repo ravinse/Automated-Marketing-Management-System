@@ -3,6 +3,18 @@ import { Bell, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Profile from '../../assets/Profile.png';
 import API from '../../api';
+// Helper to resolve backend relative avatar paths
+const resolveAvatarUrl = (val) => {
+  if (!val) return null;
+  try {
+    if (typeof val !== 'string') return null;
+    if (val.startsWith('http') || val.startsWith('data:')) return val;
+    const base = (API?.defaults?.baseURL || '').replace(/\/?api\/?$/, '');
+    return `${base}${val}`;
+  } catch {
+    return val;
+  }
+};
 import Logo from '../../assets/logo.png';
 
 const Navbar = () => {
@@ -10,6 +22,7 @@ const Navbar = () => {
   const [userEmail, setUserEmail] = useState('');
   const [userName, setUserName] = useState('');
   const [userRole, setUserRole] = useState('');
+  const [profileImage, setProfileImage] = useState(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
@@ -23,6 +36,16 @@ const Navbar = () => {
         setUserEmail(userData.email);
         setUserName(userData.name);
         setUserRole(userData.role);
+        // Resolve and set profile image
+        if (userData.profileImage) {
+          const resolved = resolveAvatarUrl(userData.profileImage);
+          setProfileImage(resolved);
+          try { localStorage.setItem('userProfileImage', resolved); } catch { /* ignore */ }
+        } else {
+          // try to read cached image from localStorage
+          const cached = localStorage.getItem('userProfileImage');
+          if (cached) setProfileImage(cached);
+        }
         
         // Also update localStorage for backward compatibility
         localStorage.setItem('userEmail', userData.email);
@@ -45,6 +68,17 @@ const Navbar = () => {
     };
 
     fetchUserData();
+
+    // Listen for profile update events (dispatched by Settings)
+    const onProfileUpdate = (e) => {
+      const img = e?.detail?.profileImage;
+      if (img) setProfileImage(img);
+    };
+    window.addEventListener('userProfileUpdated', onProfileUpdate);
+
+    return () => {
+      window.removeEventListener('userProfileUpdated', onProfileUpdate);
+    };
   }, []);
 
   // Close dropdown when clicking outside
@@ -84,36 +118,29 @@ const Navbar = () => {
           
           {/* Navigation Links */}
           <div className="flex items-center space-x-6">
+            <Link to="/owner" className="text-gray-900 font-medium hover:text-gray-700">Home</Link>
             <Link to="/owner/performance" className="text-gray-900 font-medium hover:text-gray-700">Dashboard</Link>
             <Link to="/owner/campaign-overview" className="text-gray-500 hover:text-gray-700">Campaigns</Link>
             <Link to="/owner/feedback" className="text-gray-500 hover:text-gray-700">Feedback</Link>
             <Link to="/owner/strategic" className="text-gray-500 hover:text-gray-700">Reports</Link>
-            <Link to="/owner/strategic" className="text-gray-500 hover:text-gray-700">Settings</Link>
           </div>
         </div>
         
         {/* Right side - Search and Profile */}
         <div className="flex items-center space-x-4">
-          {/* Search Icon */}
-          <button className="p-2 hover:bg-gray-100 rounded-md">
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
-          
-          {/* Notification Bell */}
-          <button className="p-2 hover:bg-gray-100 rounded-md relative">
-            <Bell className="w-5 h-5 text-gray-500" />
-          </button>
           
           {/* Profile */}
           <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={toggleDropdown}
-              className="w-8 h-8 rounded-full overflow-hidden hover:opacity-80 transition-opacity"
-            >
-              <img src={Profile} alt="Profile" className="w-full h-full object-cover" />
-            </button>
+              <button
+                onClick={toggleDropdown}
+                className="w-8 h-8 rounded-full overflow-hidden hover:opacity-80 transition-opacity"
+              >
+                <img
+                  src={profileImage || Profile}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              </button>
 
             {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
