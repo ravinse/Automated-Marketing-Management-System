@@ -93,13 +93,10 @@ const Navbart = () => {
 
   return (
     <div className='w-full border-b-2 p-3 border-gray-200 flex bg-white'>
-      <button onClick={() => navigate(homePath)} className='ml-4 mt-2' title='Home'>
-        <img src={Logo} alt="logo" className='w-14 h-8' />
-      </button>
+      <img src={Logo} alt="logo" className='w-14 h-8 ml-4 mt-2' />
       <div className='ml-10'>
     <nav className="flex sm:justify-center space-x-4">
     {[
-      ['Home', homePath],
       ['Dashboard', '/thome'],
       ['Templates', '/templatet'], 
       ['Feedback', '/feedbackT'],

@@ -93,16 +93,13 @@ const Navbarm = () => {
   return (
     <div className="w-full border-b-2 p-3 border-gray-200 flex bg-white relative">
       {/* Logo */}
-      <button onClick={() => navigate(homePath)} className="ml-4 mt-2" title="Home">
-        <img src={Logo} alt="logo" className="w-14 h-8" />
-      </button>
+      <img src={Logo} alt="logo" className="w-14 h-8 ml-4 mt-2" />
 
       {/* Nav links */}
       <div className="ml-10">
         <nav className="flex sm:justify-center space-x-4">
           {(() => {
             const items = [
-              [(userRole || '').toLowerCase() === 'admin' ? 'Admin Home' : 'Home', homePath],
               ['Dashboard', '/performance'],
               ['Campaigns', '/Campaign'],
               ['Templates', '/Template'],
@@ -111,7 +108,7 @@ const Navbarm = () => {
             ];
             if ((userRole || '').toLowerCase() === 'admin') {
               // Add User Management for admins
-              items.splice(2, 0, ['User Management', '/user-management']);
+              items.splice(1, 0, ['User Management', '/user-management']);
             }
             return items;
           })().map(([title, url]) => (
