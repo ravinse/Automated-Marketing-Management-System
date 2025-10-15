@@ -129,7 +129,10 @@ function CampaignCreation() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ customerSegments: segments })
+        body: JSON.stringify({ 
+          customerSegments: segments,
+          daysPeriod: 14 // Changed from 6 months (180 days) to 14 days
+        })
       });
 
       if (response.ok) {
@@ -150,7 +153,7 @@ function CampaignCreation() {
           targetedCustomerCount: data.count
         }));
 
-        console.log(`✅ Found ${data.count} customers matching selected segments`);
+        console.log(`✅ Found ${data.count} customers matching selected segments (last 14 days)`);
       } else {
         const errorText = await response.text();
         console.error('❌ Failed to fetch customer preview:', response.status, errorText);
