@@ -145,37 +145,44 @@ const Performance_dashboardm = () => {
   };
 
   return (
-    
-    <div className="bg-gray-50 px-6 pb-8"><Navbarm/>
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <Navbarm />
+      <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Table Section Header */}
-        <div className='mb-6'><h1 className='text-2xl font-bold text-gray-900'>Campaign Performance</h1></div>
-       <div className='mt-0'><p className="text-gray-500 mb-6">Track the performance of your campaigns and optimize for better results.</p></div>
+        <div className='mb-2'>
+          <h1 className='text-2xl font-bold text-gray-900'>Campaign Performance</h1>
+        </div>
+        <div className='mb-6'>
+          <p className="text-gray-500">Track the performance of your campaigns and optimize for better results.</p>
+        </div>
+
         {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Total Campaigns */}
-        <div className="border rounded-lg p-6 shadow-sm bg-white">
-          <h3 className="text-gray-600 mb-2">Total Campaigns</h3>
-          <p className="text-2xl font-bold">
-            {loading ? '...' : totalCampaignsCount}
-          </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Total Campaigns */}
+          <div className="border rounded-lg p-6 shadow-sm bg-white">
+            <h3 className="text-gray-600 mb-2">Total Campaigns</h3>
+            <p className="text-2xl font-bold">
+              {loading ? '...' : totalCampaignsCount}
+            </p>
+          </div>
+
+          {/* Active Campaigns */}
+          <div className="border rounded-lg p-6 shadow-sm bg-white">
+            <h3 className="text-gray-600 mb-2">Active Campaigns</h3>
+            <p className="text-2xl font-bold">
+              {loading ? '...' : activeCampaignsCount}
+            </p>
+          </div>
+
+          {/* Campaigns Completed */}
+          <div className="border rounded-lg p-6 shadow-sm bg-white">
+            <h3 className="text-gray-600 mb-2">Campaigns Completed</h3>
+            <p className="text-2xl font-bold">
+              {loading ? '...' : completedCampaignsCount}
+            </p>
+          </div>
         </div>
 
-        {/* Active Campaigns */}
-        <div className="border rounded-lg p-6 shadow-sm bg-white">
-          <h3 className="text-gray-600 mb-2">Active Campaigns</h3>
-          <p className="text-2xl font-bold">
-            {loading ? '...' : activeCampaignsCount}
-          </p>
-        </div>
-
-        {/* Campaigns Completed */}
-        <div className="border rounded-lg p-6 shadow-sm bg-white">
-          <h3 className="text-gray-600 mb-2">Campaigns Completed</h3>
-          <p className="text-2xl font-bold">
-            {loading ? '...' : completedCampaignsCount}
-          </p>
-        </div></div>
         <div className="mb-6">
           <h2 className="text-xl font-bold text-gray-900">Campaign Metrics</h2>
         </div>

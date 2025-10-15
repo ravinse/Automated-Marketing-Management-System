@@ -107,84 +107,94 @@ const Navbar = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
   return (
-    <nav className="bg-white border-b border-gray-200 px-6 py-4">
-      <div className="flex items-center justify-between">
-        {/* Left side - Logo and Navigation */}
-        <div className="flex items-center space-x-8">
-          {/* Logo */}
-          <button onClick={() => navigate('/owner')} className="flex items-center space-x-2" title="Owner Home">
-            <img src={Logo} alt="Logo" className="h-8 w-14" />
-          </button>
-          
-          {/* Navigation Links */}
-          <div className="flex items-center space-x-6">
-            <Link to="/owner" className="text-gray-900 font-medium hover:text-gray-700">Home</Link>
-            <Link to="/owner/performance" className="text-gray-900 font-medium hover:text-gray-700">Dashboard</Link>
-            <Link to="/owner/campaign-overview" className="text-gray-500 hover:text-gray-700">Campaigns</Link>
-            <Link to="/owner/feedback" className="text-gray-500 hover:text-gray-700">Feedback</Link>
-            <Link to="/owner/strategic" className="text-gray-500 hover:text-gray-700">Reports</Link>
-          </div>
-        </div>
-        
-        {/* Right side - Search and Profile */}
-        <div className="flex items-center space-x-4">
-          
-          {/* Profile */}
-          <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={toggleDropdown}
-                className="w-8 h-8 rounded-full overflow-hidden hover:opacity-80 transition-opacity"
-              >
-                <img
-                  src={profileImage || Profile}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-              </button>
+    <div className="w-full border-b-2 p-3 border-gray-200 flex bg-white relative">
+      {/* Logo */}
+      <img src={Logo} alt="logo" className="w-14 h-8 ml-4 mt-2" />
 
-            {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                {/* User Email */}
-                <div className="px-4 py-3 border-b border-gray-200">
-                  <p className="text-sm text-gray-500">Signed in as</p>
-                  <p className="text-sm font-semibold text-gray-800 truncate">{userName}</p>
-                  <p className="text-xs text-gray-600 truncate">{userEmail}</p>
-                  <p className="text-xs text-blue-600 font-medium">{userRole}</p>
-                </div>
-
-                {/* Settings */}
-                <Link
-                  to="/settings"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                  onClick={() => setIsDropdownOpen(false)}
-                >
-                  <div className="flex items-center">
-                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
-                    Settings
-                  </div>
-                </Link>
-
-                {/* Logout */}
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                >
-                  <div className="flex items-center">
-                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                    </svg>
-                    Logout
-                  </div>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+      {/* Nav links */}
+      <div className="ml-10">
+        <nav className="flex sm:justify-center space-x-4">
+          {[
+            ['Home', '/owner'],
+            ['Dashboard', '/owner/performance'],
+            ['Campaigns', '/owner/campaign-overview'],
+            ['Feedback', '/owner/feedback'],
+            ['Reports', '/owner/strategic'],
+          ].map(([title, url]) => (
+            <Link
+              to={url}
+              key={title}
+              className="rounded-lg px-3 py-2 text-slate-700 font-medium hover:bg-slate-100 hover:text-slate-900"
+            >
+              {title}
+            </Link>
+          ))}
+        </nav>
       </div>
-    </nav>
+
+      {/* Profile */}
+      <div className="relative ml-auto mr-8 flex items-center gap-4">
+        {/* Profile with dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={toggleDropdown}
+            className="rounded-full hover:opacity-80 transition-opacity"
+          >
+            <img
+              src={profileImage || Profile}
+              alt="profile"
+              className="h-8 w-8 align-middle inline-block rounded-full object-cover"
+            />
+          </button>
+
+          {/* Dropdown menu */}
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+              {/* User Email */}
+              <div className="px-4 py-3 border-b border-gray-200">
+                <p className="text-sm text-gray-500">Signed in as</p>
+                <p className="text-sm font-semibold text-gray-800 truncate">{userName}</p>
+                <p className="text-xs text-gray-600 truncate">{userEmail}</p>
+              </div>
+
+              {/* Settings */}
+              <Link
+                to="/settings"
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                onClick={() => setIsDropdownOpen(false)}
+              >
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                  Settings
+                </div>
+              </Link>
+
+              {/* Logout */}
+              <button
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                  </svg>
+                  Logout
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* User Info Button */}
+        <button className="flex flex-col items-start px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+          <span className="text-sm font-bold text-gray-800">{userRole}</span>
+          <span className="text-xs text-gray-600">{userName}</span>
+        </button>
+      </div>
+    </div>
   );
 };
 

@@ -92,30 +92,41 @@ const Navbart = () => {
   const homePath = getHomePath(userRole);
 
   return (
-    <div className='w-full border-b-2 p-3 border-gray-200 flex bg-white'>
-      <img src={Logo} alt="logo" className='w-14 h-8 ml-4 mt-2' />
-      <div className='ml-10'>
-    <nav className="flex sm:justify-center space-x-4">
-    {[
-      ['Dashboard', '/thome'],
-      ['Templates', '/templatet'], 
-      ['Feedback', '/feedbackT'],
-    ].map(([title, url]) => (
-      <Link to={url} key={title} className="rounded-lg px-3 py-2 text-slate-700 font-medium hover:bg-slate-100 hover:text-slate-900">
-        {title}
-      </Link>
-    ))}
+    <div className="w-full border-b-2 p-3 border-gray-200 flex bg-white relative">
+      {/* Logo */}
+      <img src={Logo} alt="logo" className="w-14 h-8 ml-4 mt-2" />
+
+      {/* Nav links */}
+      <div className="ml-10">
+        <nav className="flex sm:justify-center space-x-4">
+          {[
+            ['Dashboard', '/thome'],
+            ['Templates', '/templatet'], 
+            ['Feedback', '/feedbackT'],
+          ].map(([title, url]) => (
+            <Link
+              to={url}
+              key={title}
+              className="rounded-lg px-3 py-2 text-slate-700 font-medium hover:bg-slate-100 hover:text-slate-900"
+            >
+              {title}
+            </Link>
+          ))}
         </nav>
-        </div>
-      <div className="relative ml-auto mr-8 flex items-center">
+      </div>
+
+      {/* Profile */}
+      <div className="relative ml-auto mr-8 flex items-center gap-4">
+        {/* Profile with dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button 
             onClick={toggleDropdown}
-            className='rounded-full hover:opacity-80 transition-opacity'
+            className="rounded-full hover:opacity-80 transition-opacity"
           >
             <img src={profile} alt="profile" className="h-8 w-8 align-middle inline-block" />
           </button>
 
+          {/* Dropdown menu */}
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
               {/* User Email */}
@@ -157,7 +168,7 @@ const Navbart = () => {
         </div>
 
         {/* User Info Button */}
-        <button className="flex flex-col items-start px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors ml-3">
+        <button className="flex flex-col items-start px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
           <span className="text-sm font-bold text-gray-800">{userRole}</span>
           <span className="text-xs text-gray-600">{loading ? 'Loading...' : userName}</span>
         </button>
