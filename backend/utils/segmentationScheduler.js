@@ -36,12 +36,12 @@ async function runSync() {
 
 /**
  * Start the segmentation scheduler
- * Default: Runs every 30 minutes
+ * Default: Runs every 1 minute
  * You can customize the schedule using cron syntax
  */
-function startSegmentationScheduler(schedule = '*/30 * * * *') {
+function startSegmentationScheduler(schedule = '*/1 * * * *') {
   console.log('📅 Customer segmentation scheduler started');
-  console.log(`⏰ Schedule: Every 30 minutes (${schedule})`);
+  console.log(`⏰ Schedule: Every 1 minute (${schedule})`);
   console.log('🔄 The system will automatically segment new customers\n');
 
   // Run immediately on startup
@@ -49,6 +49,8 @@ function startSegmentationScheduler(schedule = '*/30 * * * *') {
 
   // Schedule periodic runs
   // Cron format: minute hour day month dayOfWeek
+  // */1 * * * * = every 1 minute
+  // */5 * * * * = every 5 minutes
   // */30 * * * * = every 30 minutes
   // 0 * * * * = every hour at minute 0
   // 0 */2 * * * = every 2 hours
