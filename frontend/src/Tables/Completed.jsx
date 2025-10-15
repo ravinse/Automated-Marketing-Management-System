@@ -74,14 +74,15 @@ const Completed = () => {
   }
 
   return (
-    <div>
-      <div className="w-full">
-        <h3 className="text-lg font-semibold ml-52 text-slate-800">
+    <div className="w-full">
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-slate-800">
           Completed ({completedCampaigns.length})
         </h3>
       </div>
-      <div className="relative flex flex-col h-full text-gray-700 bg-white shadow-md rounded-lg bg-clip-border mx-56 mt-10">
-        <table className="w-full text-left table-auto min-w-max">
+      <div className="relative flex flex-col h-full text-gray-700 bg-white shadow-md rounded-lg bg-clip-border overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left table-auto min-w-max">
           <thead>
             <tr>
               <th className="p-4 border-b border-slate-300 bg-slate-50">
@@ -170,6 +171,7 @@ const Completed = () => {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

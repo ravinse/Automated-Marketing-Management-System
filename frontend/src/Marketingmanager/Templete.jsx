@@ -61,67 +61,79 @@ const Templete = () => {
   return (
     <div>
         <div><Navbarm /></div>
-       <div className="w-full">
- </div>
+       
+       {/* Page Container with responsive padding */}
+       <div className="min-h-screen bg-gray-50">
+         {/* Header Section */}
+         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+             <div>
+               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Campaign Templates</h1>
+               <p className="text-gray-600 mt-1">Saved templates you can reuse for new campaigns</p>
+             </div>
+             <Link to="/createcampaingm">
+               <button className="bg-[#F2F2F5] text-black px-6 py-2.5 rounded-full hover:bg-[#E0E0E5] transition-colors font-medium shadow-sm w-full sm:w-auto">
+                 Create New Campaign
+               </button>
+             </Link>
+           </div>
+         </div>
 
- {/* Header */}
- <div className="mx-56 mt-10 mb-6">
-  <h1 className="text-2xl font-bold text-gray-800">Campaign Templates</h1>
-  <p className="text-gray-600">Saved templates you can reuse for new campaigns</p>
- </div>
+         {/* Content Section */}
+         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+           {/* Loading State */}
+           {loading && (
+             <div className="bg-white rounded-lg shadow-md p-10 text-center">
+               <p className="text-gray-600">Loading templates...</p>
+             </div>
+           )}
 
- {/* Loading State */}
- {loading && (
-   <div className="mx-56 mt-10 text-center py-10">
-     <p className="text-gray-600">Loading templates...</p>
-   </div>
- )}
+           {/* Error State */}
+           {error && (
+             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+               <p>{error}</p>
+             </div>
+           )}
 
- {/* Error State */}
- {error && (
-   <div className="mx-56 mt-10 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-     <p>{error}</p>
-   </div>
- )}
-
- {/* Templates Table */}
- {!loading && !error && (
- <div className="relative flex flex-col h-full text-gray-700 bg-white shadow-md rounded-lg bg-clip-border mx-56">
-  {templates.length === 0 ? (
-    <div className="p-10 text-center">
-      <p className="text-gray-600 mb-4">No templates saved yet</p>
-      <Link to="/createcampaingm">
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-          Create Your First Campaign
-        </button>
-      </Link>
-    </div>
-  ) : (
-  <table className="w-full text-left table-auto min-w-max">
+           {/* Templates Table */}
+           {!loading && !error && (
+             <div className="relative flex flex-col h-full text-gray-700 bg-white shadow-md rounded-lg bg-clip-border overflow-hidden">
+               {templates.length === 0 ? (
+                 <div className="p-10 text-center">
+                   <p className="text-gray-600 mb-4">No templates saved yet</p>
+                   <Link to="/createcampaingm">
+                     <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                       Create Your First Campaign
+                     </button>
+                   </Link>
+                 </div>
+               ) : (
+                 <div className="overflow-x-auto">
+                   <table className="w-full text-left table-auto min-w-max">
     <thead>
         <tr>
             <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-normal leading-none text-slate-500">
+                <p className="block text-sm font-bold leading-none text-slate-500">
                     Template Name
                 </p>
             </th>
             <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-normal leading-none text-slate-500">
+                <p className="block text-sm font-bold leading-none text-slate-500">
                     Description
                 </p>
             </th>
             <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-normal leading-none text-slate-500">
+                <p className="block text-sm font-bold leading-none text-slate-500">
                     Target Segments
                 </p>
             </th>
             <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-normal leading-none text-slate-500">
+                <p className="block text-sm font-bold leading-none text-slate-500">
                     Usage Count
                 </p>
             </th>
             <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-normal leading-none text-slate-500">
+                <p className="block text-sm font-bold leading-none text-slate-500">
                     Actions
                 </p>
             </th>
@@ -183,10 +195,12 @@ const Templete = () => {
         ))}
     </tbody>
   </table>
-  )}
-</div>
- )}
- 
+                 </div>
+               )}
+             </div>
+           )}
+         </div>
+       </div>
     </div>
   )
 }

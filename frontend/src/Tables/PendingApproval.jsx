@@ -79,19 +79,20 @@ const PendingApproval = () => {
   }
 
   return (
-    <div>
-      <div className="w-full">
-        <h3 className="text-lg font-semibold ml-52 text-slate-800">
+    <div className="w-full">
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-slate-800">
           Pending Approval ({campaigns.length})
         </h3>
       </div>
-      <div className="relative flex flex-col h-full text-gray-700 bg-white shadow-md rounded-lg bg-clip-border mx-56 mt-10">
+      <div className="relative flex flex-col h-full text-gray-700 bg-white shadow-md rounded-lg bg-clip-border overflow-hidden">
         {campaigns.length === 0 ? (
           <div className="p-8 text-center">
             <p className="text-gray-600">No campaigns pending approval</p>
           </div>
         ) : (
-          <table className="w-full text-left table-auto min-w-max">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left table-auto min-w-max">
             <thead>
               <tr>
                 <th className="p-4 border-b border-slate-300 bg-slate-50">
@@ -167,6 +168,7 @@ const PendingApproval = () => {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
