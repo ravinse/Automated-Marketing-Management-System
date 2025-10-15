@@ -133,6 +133,33 @@ const campaignSchema = new mongoose.Schema({
       type: Number,
       default: 0
     }
+  },
+  
+  // Email Tracking Fields
+  sent: {
+    type: Number,
+    default: 0
+  },
+  opened: {
+    type: Number,
+    default: 0
+  },
+  clicked: {
+    type: Number,
+    default: 0
+  },
+  openRate: {
+    type: String,
+    default: '0.00%'
+  },
+  clickThroughRate: {
+    type: String,
+    default: '0.00%'
+  },
+  trackingUrl: {
+    type: String,
+    trim: true,
+    default: 'http://localhost:5174'
   }
 }, {
   timestamps: true

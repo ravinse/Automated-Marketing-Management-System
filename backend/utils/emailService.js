@@ -21,22 +21,118 @@ const createTransporter = () => {
 };
 
 /**
- * Send email to a single recipient
+ * Send email to a single recipient with tracking
  * @param {string} to - Recipient email address
  * @param {string} subject - Email subject
  * @param {string} htmlContent - Email body in HTML format
  * @param {string} textContent - Email body in plain text format (optional)
+ * @param {string} campaignId - Campaign ID for tracking (optional)
+ * @param {string} customerId - Customer ID for tracking (optional)
  * @returns {Promise<object>} - Email send result
  */
-const sendEmail = async (to, subject, htmlContent, textContent = null) => {
+const sendEmail = async (to, subject, htmlContent, textContent = null, campaignId = null, customerId = null) => {
   try {
     const transporter = createTransporter();
+    
+    // Prepare HTML content with proper structure
+    let finalHtmlContent = htmlContent;
+    
+    console.log('📧 SendEmail Debug:');
+    console.log('  - Has campaignId:', !!campaignId);
+    console.log('  - Has customerId:', !!customerId);
+    console.log('  - Original content length:', htmlContent.length);
+    console.log('  - Has <html tag:', htmlContent.includes('<html'));
+    console.log('  - Has <a tag:', htmlContent.includes('<a '));
+    
+    // Wrap plain text content in HTML if needed
+    if (!finalHtmlContent.includes('<html') && !finalHtmlContent.includes('<body')) {
+      console.log('  ✅ Wrapping content in HTML structure');
+      finalHtmlContent = `
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+            ${finalHtmlContent}
+          </body>
+        </html>
+      `;
+    }
+    
+    // Inject tracking if campaignId and customerId are provided
+    if (campaignId && customerId) {
+      const baseUrl = process.env.BASE_URL || 'http://localhost:5001';
+      
+      // Add sample call-to-action button if no links exist
+      if (!finalHtmlContent.includes('<a ') && !finalHtmlContent.includes('href=')) {
+        console.log('  ✅ Adding CTA button (no links found)');
+        
+        // Simple, Gmail-friendly button
+        const ctaButton = `
+          <br><br>
+          <div style="text-align: center; margin: 20px 0;">
+            <table cellspacing="0" cellpadding="0" border="0" align="center">
+              <tr>
+                <td align="center" bgcolor="#00AF96" style="border-radius: 5px;">
+                  <a href="http://localhost:5174" target="_blank" 
+                     style="font-size: 16px; 
+                            font-family: Arial, sans-serif; 
+                            color: #ffffff; 
+                            text-decoration: none; 
+                            padding: 15px 40px; 
+                            display: inline-block; 
+                            font-weight: bold;">
+                    🛒 Visit Our Website
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <br>
+        `;
+        
+        // Insert button before closing body tag
+        if (finalHtmlContent.includes('</body>')) {
+          finalHtmlContent = finalHtmlContent.replace('</body>', `${ctaButton}</body>`);
+        } else {
+          finalHtmlContent += ctaButton;
+        }
+      } else {
+        console.log('  ⚠️ Skipping button (links already exist)');
+      }
+      
+      // Add tracking pixel at the end of email
+      const trackingPixel = `<img src="${baseUrl}/api/tracking/open/${campaignId}/${customerId}" width="1" height="1" style="display:none;" alt="" />`;
+      
+      // Convert all links to tracking links
+      const linksBefore = (finalHtmlContent.match(/<a /gi) || []).length;
+      finalHtmlContent = finalHtmlContent.replace(
+        /<a\s+([^>]*href=["']([^"']+)["'][^>]*)>/gi,
+        (match, attrs, url) => {
+          const trackingUrl = `${baseUrl}/api/tracking/click/${campaignId}/${customerId}?url=${encodeURIComponent(url)}`;
+          return `<a ${attrs.replace(url, trackingUrl)}>`;
+        }
+      );
+      const linksAfter = (finalHtmlContent.match(/<a /gi) || []).length;
+      console.log(`  ✅ Converted ${linksAfter} links to tracking links`);
+      
+      // Add tracking pixel before closing body tag or at the end
+      if (finalHtmlContent.includes('</body>')) {
+        finalHtmlContent = finalHtmlContent.replace('</body>', `${trackingPixel}</body>`);
+      } else {
+        finalHtmlContent += trackingPixel;
+      }
+      console.log('  ✅ Added tracking pixel');
+    }
+    
+    console.log('  - Final content length:', finalHtmlContent.length);
     
     const mailOptions = {
       from: `"${process.env.EMAIL_FROM_NAME || 'Marketing System'}" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
       to: to,
       subject: subject,
-      html: htmlContent,
+      html: finalHtmlContent,
       text: textContent || htmlContent.replace(/<[^>]*>/g, ''), // Strip HTML tags for text version
     };
 

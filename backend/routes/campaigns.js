@@ -51,6 +51,12 @@ router.put("/:id", validateObjectId(), campaignController.updateCampaign);
 // Update campaign performance metrics
 router.patch("/:id/metrics", validateObjectId(), campaignController.updateCampaignMetrics);
 
+// Send campaign emails manually with tracking
+router.post("/send-emails/:id", validateObjectId(), campaignController.sendCampaignEmailsManually);
+
+// Update campaign tracking URL
+router.patch("/tracking-url/:id", validateObjectId(), campaignController.updateTrackingUrl);
+
 // Delete campaign
 router.delete("/:id", validateObjectId(), campaignController.deleteCampaign);
 

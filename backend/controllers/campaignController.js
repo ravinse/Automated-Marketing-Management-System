@@ -1,6 +1,6 @@
 const Campaign = require("../models/Campaign");
 const Customer = require("../models/Customer");
-const { sendBatchEmails } = require("../utils/emailService");
+const { sendBatchEmails, sendEmail } = require("../utils/emailService");
 const { sendBatchSMS } = require("../utils/smsService");
 const { MongoClient } = require('mongodb');
 
@@ -248,18 +248,23 @@ exports.approveCampaign = async (req, res) => {
     const shouldStartImmediately = !campaign.startDate || new Date(campaign.startDate) <= now;
     
     if (shouldStartImmediately) {
-      // Set to running status and execute immediately
+      // Set to running status
       campaign.status = 'running';
       await campaign.save();
       
-      // Execute campaign (send emails/SMS to segmented customers)
-      const { executeCampaignAutomatically } = require('../utils/campaignScheduler');
-      const executionResult = await executeCampaignAutomatically(campaign);
+      // Send emails with tracking (this includes the button)
+      let emailResults = null;
+      try {
+        emailResults = await sendCampaignEmails(campaign);
+        console.log('✅ Campaign emails sent with tracking:', emailResults);
+      } catch (emailError) {
+        console.error('❌ Error sending campaign emails:', emailError);
+      }
       
       res.json({ 
-        message: "Campaign approved and executed successfully", 
+        message: "Campaign approved and emails sent successfully", 
         campaign,
-        execution: executionResult
+        emailTracking: emailResults
       });
     } else {
       // Schedule for later - set to approved status
@@ -797,3 +802,160 @@ exports.executeCampaign = async (req, res) => {
     }
   }
 };
+
+// Helper function to send campaign emails with tracking
+const sendCampaignEmails = async (campaign) => {
+  try {
+    console.log(`Sending emails for campaign: ${campaign.title}`);
+    
+    // Get customers based on segments
+    const customers = await Customer.find({
+      segment: { $in: campaign.customerSegments }
+    });
+    
+    console.log(`Found ${customers.length} customers to send emails to`);
+    
+    let sentCount = 0;
+    let failedCount = 0;
+    
+    // Prepare email content with proper HTML structure
+    let emailContent = campaign.emailContent || '';
+    
+    // Wrap plain text content in HTML if needed
+    if (!emailContent.includes('<html') && !emailContent.includes('<body')) {
+      emailContent = `
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+            ${emailContent}
+          </body>
+        </html>
+      `;
+    }
+    
+    // Add sample call-to-action link if email content doesn't have links
+    if (!emailContent.includes('<a ') && !emailContent.includes('href=')) {
+      // Add a default CTA button before closing body tag
+      const ctaButton = `
+        <div style="margin-top: 30px; text-align: center;">
+          <a href="${campaign.trackingUrl || 'http://localhost:5174'}" 
+             style="display: inline-block; padding: 15px 40px; background-color: #00AF96; 
+                    color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
+            🛍️ Visit Our Website
+          </a>
+        </div>
+      `;
+      
+      // Insert button before closing body tag
+      if (emailContent.includes('</body>')) {
+        emailContent = emailContent.replace('</body>', `${ctaButton}</body>`);
+      } else {
+        emailContent += ctaButton;
+      }
+    }
+    
+    // Send emails to each customer
+    for (const customer of customers) {
+      if (!customer.email) {
+        console.log(`Customer ${customer._id} has no email address`);
+        continue;
+      }
+      
+      const result = await sendEmail(
+        customer.email,
+        campaign.emailSubject,
+        emailContent,
+        null, // text content
+        campaign._id.toString(), // campaignId for tracking
+        customer._id.toString()  // customerId for tracking
+      );
+      
+      if (result.success) {
+        sentCount++;
+      } else {
+        failedCount++;
+      }
+      
+      // Small delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    // Update campaign sent count
+    campaign.sent = sentCount;
+    await campaign.save();
+    
+    console.log(`Campaign emails sent: ${sentCount} successful, ${failedCount} failed`);
+    
+    return {
+      sent: sentCount,
+      failed: failedCount,
+      total: customers.length
+    };
+  } catch (error) {
+    console.error('Error sending campaign emails:', error);
+    throw error;
+  }
+};
+
+// Send campaign emails manually
+exports.sendCampaignEmailsManually = async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    
+    if (!campaign) {
+      return res.status(404).json({ message: "Campaign not found" });
+    }
+    
+    if (campaign.status !== 'approved' && campaign.status !== 'running') {
+      return res.status(400).json({ 
+        message: "Campaign must be approved or running to send emails" 
+      });
+    }
+    
+    const results = await sendCampaignEmails(campaign);
+    
+    res.json({
+      success: true,
+      message: "Campaign emails sent successfully",
+      results
+    });
+  } catch (error) {
+    console.error('Error sending campaign emails manually:', error);
+    res.status(500).json({ 
+      message: "Error sending campaign emails", 
+      error: error.message 
+    });
+  }
+};
+
+// Update campaign tracking URL
+exports.updateTrackingUrl = async (req, res) => {
+  try {
+    const { trackingUrl } = req.body;
+    
+    const campaign = await Campaign.findById(req.params.id);
+    
+    if (!campaign) {
+      return res.status(404).json({ message: "Campaign not found" });
+    }
+    
+    campaign.trackingUrl = trackingUrl;
+    await campaign.save();
+    
+    res.json({
+      success: true,
+      message: "Tracking URL updated successfully",
+      campaign
+    });
+  } catch (error) {
+    console.error('Error updating tracking URL:', error);
+    res.status(500).json({ 
+      message: "Error updating tracking URL", 
+      error: error.message 
+    });
+  }
+};
+

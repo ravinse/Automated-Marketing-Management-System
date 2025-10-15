@@ -7,6 +7,7 @@ import Changepass from "./Login/Changepass";
 import Checkmail from "./Login/Checkmail";
 import Changesucc from "./Login/NewPass";
 import NewPass from "./Login/NewPass";
+import Passchangesucc from "./Login/Passchangesucc";
 
 // Dashboard
 import Campaign from './Marketingmanager/Campaign';
@@ -50,6 +51,7 @@ function App() {
         <Route path="/changepass" element={<Changepass />} />
         <Route path="/checkmail" element={<Checkmail />} />
         <Route path="/changesucc" element={<Changesucc />} />
+        <Route path="/passchangesucc" element={<Passchangesucc />} />
 
         {/* Dashboard Routes */}
         <Route path="/Campaign" element={<Campaign/>} /> 

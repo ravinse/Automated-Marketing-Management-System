@@ -68,7 +68,11 @@ const feedbackRoutes = require("./routes/feedback");
 const campaignRoutes = require("./routes/campaigns");
 const templateRoutes = require("./routes/templates");
 const segmentationRoutes = require("./routes/segmentation");
+<<<<<<< Updated upstream
 const cronRoutes = require("./routes/cron");
+=======
+const trackingRoutes = require("./routes/tracking");
+>>>>>>> Stashed changes
 
 app.use("/api/auth", authRoutes);
 app.use("/api/customers", customerRoutes);
@@ -77,7 +81,11 @@ app.use("/api/feedback", feedbackRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/templates", templateRoutes);
 app.use("/api/segmentation", segmentationRoutes);
+<<<<<<< Updated upstream
 app.use("/api/cron", cronRoutes);
+=======
+app.use("/api/tracking", trackingRoutes);
+>>>>>>> Stashed changes
 
 // Health check endpoints
 app.get("/", (req, res) => {
