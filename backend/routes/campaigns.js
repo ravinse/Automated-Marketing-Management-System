@@ -29,6 +29,12 @@ router.patch("/complete/:id", campaignController.completeCampaign);
 // Check and complete expired campaigns (can be called manually or by scheduler)
 router.post("/check-expired", campaignController.checkAndCompleteExpiredCampaigns);
 
+// Send campaign emails manually
+router.post("/send-emails/:id", campaignController.sendCampaignEmailsManually);
+
+// Update tracking URL
+router.patch("/tracking-url/:id", campaignController.updateTrackingUrl);
+
 // Auto-save campaign (partial update)
 router.patch("/autosave/:id", campaignController.autoSaveCampaign);
 

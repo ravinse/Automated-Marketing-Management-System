@@ -52,6 +52,32 @@ const campaignSchema = new mongoose.Schema({
     type: String
   }],
   
+  // Tracking & Analytics
+  sent: {
+    type: Number,
+    default: 0
+  },
+  opened: {
+    type: Number,
+    default: 0
+  },
+  clicked: {
+    type: Number,
+    default: 0
+  },
+  openRate: {
+    type: String,
+    default: '0%'
+  },
+  clickThroughRate: {
+    type: String,
+    default: '0%'
+  },
+  trackingUrl: {
+    type: String,
+    trim: true
+  },
+  
   // Status tracking
   status: {
     type: String,

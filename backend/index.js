@@ -36,6 +36,7 @@ const userRoutes = require("./routes/users");
 const feedbackRoutes = require("./routes/feedback");
 const campaignRoutes = require("./routes/campaigns");
 const templateRoutes = require("./routes/templates");
+const trackingRoutes = require("./routes/tracking");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/customers", customerRoutes);
@@ -43,6 +44,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/templates", templateRoutes);
+app.use("/api/tracking", trackingRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend API is running...");

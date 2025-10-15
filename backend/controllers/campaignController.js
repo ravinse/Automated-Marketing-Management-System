@@ -1,4 +1,6 @@
 const Campaign = require("../models/Campaign");
+const Customer = require("../models/Customer");
+const sendEmail = require("../utils/sendEmail");
 
 // Get all campaigns
 exports.getCampaigns = async (req, res) => {
@@ -234,6 +236,14 @@ exports.approveCampaign = async (req, res) => {
     campaign.approvedAt = new Date();
     await campaign.save();
 
+    // Send campaign emails automatically when approved
+    try {
+      await sendCampaignEmails(campaign);
+    } catch (emailError) {
+      console.error('Error sending campaign emails:', emailError);
+      // Continue even if email sending fails
+    }
+
     res.json({ 
       message: "Campaign approved and started successfully", 
       campaign 
@@ -241,6 +251,55 @@ exports.approveCampaign = async (req, res) => {
   } catch (error) {
     console.error('Error approving campaign:', error);
     res.status(500).json({ message: "Error approving campaign", error: error.message });
+  }
+};
+
+// Helper function to send campaign emails
+const sendCampaignEmails = async (campaign) => {
+  try {
+    console.log(`📧 Starting to send emails for campaign: ${campaign.title}`);
+    
+    // Find customers based on campaign segments
+    let customers = [];
+    
+    if (campaign.customerSegments && campaign.customerSegments.length > 0) {
+      // Get customers matching the segments
+      customers = await Customer.find({
+        segment: { $in: campaign.customerSegments }
+      });
+    } else {
+      // If no segments specified, get all customers
+      customers = await Customer.find();
+    }
+    
+    console.log(`📧 Found ${customers.length} customers to send emails to`);
+    
+    // Send email to each customer
+    let sentCount = 0;
+    for (const customer of customers) {
+      try {
+        await sendEmail(
+          customer.email,
+          campaign.emailSubject || campaign.title,
+          campaign.emailContent || campaign.description,
+          campaign._id.toString(),
+          customer._id.toString()
+        );
+        sentCount++;
+      } catch (error) {
+        console.error(`Failed to send email to ${customer.email}:`, error);
+      }
+    }
+    
+    // Update campaign with sent count
+    campaign.sent = sentCount;
+    await campaign.save();
+    
+    console.log(`✅ Successfully sent ${sentCount} emails for campaign: ${campaign.title}`);
+    return sentCount;
+  } catch (error) {
+    console.error('Error in sendCampaignEmails:', error);
+    throw error;
   }
 };
 
@@ -402,5 +461,56 @@ exports.getCampaignsByStatus = async (req, res) => {
   } catch (error) {
     console.error('Error fetching campaigns by status:', error);
     res.status(500).json({ message: "Error fetching campaigns", error: error.message });
+  }
+};
+
+// Send campaign emails manually
+exports.sendCampaignEmailsManually = async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) {
+      return res.status(404).json({ message: "Campaign not found" });
+    }
+
+    if (campaign.status !== 'running' && campaign.status !== 'approved') {
+      return res.status(400).json({ 
+        message: "Only running or approved campaigns can send emails" 
+      });
+    }
+
+    const sentCount = await sendCampaignEmails(campaign);
+
+    res.json({ 
+      message: "Campaign emails sent successfully", 
+      sentCount,
+      campaign 
+    });
+  } catch (error) {
+    console.error('Error sending campaign emails:', error);
+    res.status(500).json({ message: "Error sending campaign emails", error: error.message });
+  }
+};
+
+// Update campaign tracking URL
+exports.updateTrackingUrl = async (req, res) => {
+  try {
+    const { trackingUrl } = req.body;
+    const campaign = await Campaign.findByIdAndUpdate(
+      req.params.id,
+      { trackingUrl },
+      { new: true }
+    );
+
+    if (!campaign) {
+      return res.status(404).json({ message: "Campaign not found" });
+    }
+
+    res.json({ 
+      message: "Tracking URL updated successfully", 
+      campaign 
+    });
+  } catch (error) {
+    console.error('Error updating tracking URL:', error);
+    res.status(500).json({ message: "Error updating tracking URL", error: error.message });
   }
 };
