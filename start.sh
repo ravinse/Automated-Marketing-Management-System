@@ -13,32 +13,8 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Check if MongoDB is running
-echo -e "\n${BLUE}Checking MongoDB...${NC}"
-if ! pgrep -x "mongod" > /dev/null; then
-    echo -e "${YELLOW}⚠️  MongoDB is not running. Attempting to start...${NC}"
-    
-    # Try to start MongoDB (macOS with Homebrew)
-    if command -v brew &> /dev/null; then
-        brew services start mongodb-community 2>/dev/null
-        if [ $? -eq 0 ]; then
-            echo -e "${GREEN}✓ MongoDB started successfully${NC}"
-            sleep 3
-        else
-            echo -e "${RED}✗ Failed to start MongoDB automatically${NC}"
-            echo -e "${YELLOW}Please start MongoDB manually:${NC}"
-            echo "  macOS: brew services start mongodb-community"
-            echo "  Linux: sudo systemctl start mongod"
-            echo "  Windows: net start MongoDB"
-            exit 1
-        fi
-    else
-        echo -e "${RED}✗ Please start MongoDB manually before running this script${NC}"
-        exit 1
-    fi
-else
-    echo -e "${GREEN}✓ MongoDB is running${NC}"
-fi
+# Note: Using MongoDB Atlas (cloud database)
+echo -e "\n${BLUE}Database:${NC} ${GREEN}MongoDB Atlas (Cloud)${NC}"
 
 # Check if Node.js is installed
 if ! command -v node &> /dev/null; then
