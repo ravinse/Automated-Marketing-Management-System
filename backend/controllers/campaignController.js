@@ -52,6 +52,8 @@ exports.createCampaign = async (req, res) => {
       endDate,
       selectedFilters,
       customerSegments,
+      targetedCustomerIds,
+      targetedCustomerCount,
       emailSubject,
       emailContent,
       smsContent,
@@ -76,6 +78,8 @@ exports.createCampaign = async (req, res) => {
       endDate,
       selectedFilters,
       customerSegments,
+      targetedCustomerIds,
+      targetedCustomerCount,
       emailSubject,
       emailContent,
       smsContent,
@@ -107,6 +111,8 @@ exports.updateCampaign = async (req, res) => {
       endDate,
       selectedFilters,
       customerSegments,
+      targetedCustomerIds,
+      targetedCustomerCount,
       emailSubject,
       emailContent,
       smsContent,
@@ -128,6 +134,8 @@ exports.updateCampaign = async (req, res) => {
     if (endDate !== undefined) campaign.endDate = endDate;
     if (selectedFilters !== undefined) campaign.selectedFilters = selectedFilters;
     if (customerSegments !== undefined) campaign.customerSegments = customerSegments;
+    if (targetedCustomerIds !== undefined) campaign.targetedCustomerIds = targetedCustomerIds;
+    if (targetedCustomerCount !== undefined) campaign.targetedCustomerCount = targetedCustomerCount;
     if (emailSubject !== undefined) campaign.emailSubject = emailSubject;
     if (emailContent !== undefined) campaign.emailContent = emailContent;
     if (smsContent !== undefined) campaign.smsContent = smsContent;

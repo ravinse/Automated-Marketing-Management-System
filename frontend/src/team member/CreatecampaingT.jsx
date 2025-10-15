@@ -127,6 +127,8 @@ function CampaignCreation() {
     endTime: '',
     selectedFilters: [],
     customerSegments: [],
+    targetedCustomerIds: [],
+    targetedCustomerCount: 0,
     emailSubject: '',
     emailContent: '',
     smsContent: '',
@@ -136,6 +138,15 @@ function CampaignCreation() {
 
   const [showEmailPreview, setShowEmailPreview] = useState(false);
   const [showSMSPreview, setShowSMSPreview] = useState(false);
+  
+  // Customer preview state
+  const [customerPreview, setCustomerPreview] = useState({
+    loading: false,
+    count: 0,
+    breakdown: {},
+    customers: []
+  });
+  const [showCustomerPreview, setShowCustomerPreview] = useState(false);
 
   const filterOptions = [
     'Shopping Frequency',
@@ -147,6 +158,76 @@ function CampaignCreation() {
     'Shopping Frequency': ['New Customers', 'Loyal Customers', 'Lapsed Customers', 'Seasonal Customers'],
     'Customer Value': ['High value customers', 'Low value customers'],
     'Product Preference': ['Women', 'Men', 'Kids', 'Family']
+  };
+
+  // Fetch customer preview when segments change
+  const fetchCustomerPreview = async (segments) => {
+    if (!segments || segments.length === 0) {
+      setCustomerPreview({
+        loading: false,
+        count: 0,
+        breakdown: {},
+        customers: []
+      });
+      setFormData(prev => ({
+        ...prev,
+        targetedCustomerIds: [],
+        targetedCustomerCount: 0
+      }));
+      return;
+    }
+
+    setCustomerPreview(prev => ({ ...prev, loading: true }));
+
+    try {
+      const response = await fetch(`${API_URL}/segmentation/filtered-customers`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ customerSegments: segments })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const customerIds = data.customers.map(c => c.customer_id);
+        
+        setCustomerPreview({
+          loading: false,
+          count: data.count,
+          breakdown: data.breakdown || {},
+          customers: data.customers || []
+        });
+
+        // Update form with customer IDs
+        setFormData(prev => ({
+          ...prev,
+          targetedCustomerIds: customerIds,
+          targetedCustomerCount: data.count
+        }));
+
+        console.log(`✅ Found ${data.count} customers matching selected segments`);
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Failed to fetch customer preview:', response.status, errorText);
+        alert(`Error: Unable to fetch customers. Status: ${response.status}\n\nPlease ensure:\n1. Backend server is restarted\n2. MongoDB connection is working\n3. Customer segmentation data is uploaded`);
+        setCustomerPreview({
+          loading: false,
+          count: 0,
+          breakdown: {},
+          customers: []
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error fetching customer preview:', error);
+      alert(`Network Error: ${error.message}\n\nPlease check:\n1. Backend server is running on port 5001\n2. API endpoint is accessible\n3. CORS is configured correctly`);
+      setCustomerPreview({
+        loading: false,
+          count: 0,
+        breakdown: {},
+        customers: []
+      });
+    }
   };
 
   const handleChange = (e) => {
@@ -927,10 +1008,13 @@ function CampaignCreation() {
                   onChange={(e) => {
                     const segment = e.target.value;
                     if (segment && !formData.customerSegments.includes(segment)) {
+                      const newSegments = [...formData.customerSegments, segment];
                       setFormData(prev => ({
                         ...prev,
-                        customerSegments: [...prev.customerSegments, segment]
+                        customerSegments: newSegments
                       }));
+                      // Fetch customer preview with new segments
+                      fetchCustomerPreview(newSegments);
                     }
                     // Reset the select value
                     e.target.value = "";
@@ -961,10 +1045,13 @@ function CampaignCreation() {
                       <button
                         type="button"
                         onClick={() => {
+                          const newSegments = formData.customerSegments.filter(s => s !== segment);
                           setFormData(prev => ({
                             ...prev,
-                            customerSegments: prev.customerSegments.filter(s => s !== segment)
+                            customerSegments: newSegments
                           }));
+                          // Fetch customer preview with updated segments
+                          fetchCustomerPreview(newSegments);
                         }}
                         className="ml-1 text-blue-600 hover:text-blue-800 focus:outline-none"
                       >
@@ -975,6 +1062,37 @@ function CampaignCreation() {
                     </div>
                   ))}
                 </div>
+
+                {/* Customer Preview */}
+                {formData.customerSegments.length > 0 && (
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-blue-900">Targeted Customers</h4>
+                      {customerPreview.loading && (
+                        <span className="text-sm text-blue-600">Loading...</span>
+                      )}
+                    </div>
+                    {!customerPreview.loading && (
+                      <>
+                        <p className="text-2xl font-bold text-blue-700 mb-2">
+                          {customerPreview.count.toLocaleString()} customers
+                        </p>
+                        <p className="text-sm text-gray-600 mb-3">
+                          This campaign will target {customerPreview.count} customers matching your selected segments.
+                        </p>
+                        {customerPreview.count > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setShowCustomerPreview(true)}
+                            className="text-sm text-blue-600 hover:text-blue-800 underline"
+                          >
+                            View customer list
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1177,6 +1295,96 @@ function CampaignCreation() {
                     )}
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Customer List Preview Modal */}
+        {showCustomerPreview && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+              <div className="p-6 border-b">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-semibold">Targeted Customer List</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {customerPreview.count} customers matching your selected segments
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowCustomerPreview(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="mb-4">
+                  <h4 className="font-semibold mb-2">Selected Segments:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.customerSegments.map(segment => (
+                      <span key={segment} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                        {segment}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Customer ID
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Shopping Frequency
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Spending Level
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Category
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {customerPreview.customers.slice(0, 100).map((customer, index) => (
+                        <tr key={customer.customer_id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {customer.customer_id}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {customer.segmentation.purchase_frequency}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {customer.segmentation.spending}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {customer.segmentation.category}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {customerPreview.customers.length > 100 && (
+                  <p className="text-sm text-gray-500 mt-4 text-center">
+                    Showing first 100 of {customerPreview.count} customers
+                  </p>
+                )}
+              </div>
+              <div className="p-6 border-t bg-gray-50">
+                <button
+                  onClick={() => setShowCustomerPreview(false)}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>

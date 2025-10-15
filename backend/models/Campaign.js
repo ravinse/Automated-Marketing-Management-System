@@ -26,6 +26,13 @@ const campaignSchema = new mongoose.Schema({
   customerSegments: [{
     type: String
   }],
+  targetedCustomerIds: [{
+    type: String
+  }],
+  targetedCustomerCount: {
+    type: Number,
+    default: 0
+  },
   
   // Content Information
   emailSubject: {
