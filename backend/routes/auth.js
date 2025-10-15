@@ -356,6 +356,48 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
+// @route POST /api/auth/changepass
+// @desc Change password with old password verification
+router.post("/changepass", async (req, res) => {
+  const { email, oldPassword, newPassword } = req.body;
+
+  console.log(`🔑 Password change request for: ${email}`);
+
+  try {
+    // Validate input
+    if (!email || !oldPassword || !newPassword) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      console.log("❌ No user found with that email");
+      return res.status(404).json({ error: "No email found. Please restart the password reset process." });
+    }
+
+    // Verify old password
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      console.log("❌ Old password incorrect");
+      return res.status(400).json({ error: "Old password is incorrect" });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+
+    await user.save();
+    console.log(`✅ Password changed successfully for: ${user.email}`);
+
+    res.json({ message: "Password changed successfully" });
+  } catch (err) {
+    console.error("Change password error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // @route POST /api/auth/reset-password/:token
 router.post("/reset-password/:token", async (req, res) => {
   const { token } = req.params;
