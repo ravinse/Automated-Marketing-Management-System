@@ -351,7 +351,34 @@ exports.checkAndCompleteExpiredCampaigns = async (req, res) => {
   }
 };
 
-// Reject campaign
+// Request resubmission (campaign needs changes)
+exports.requestResubmission = async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) {
+      return res.status(404).json({ message: "Campaign not found" });
+    }
+
+    const { reason, rejectionReason, resubmissionNote } = req.body;
+    const resubmissionMessage = resubmissionNote || reason || rejectionReason || 'No reason provided';
+
+    campaign.status = 'rejected';
+    campaign.rejectedAt = new Date();
+    campaign.rejectionReason = resubmissionMessage;
+    campaign.resubmissionNote = resubmissionMessage;
+    await campaign.save();
+
+    res.json({ 
+      message: "Resubmission requested successfully", 
+      campaign 
+    });
+  } catch (error) {
+    console.error('Error requesting resubmission:', error);
+    res.status(500).json({ message: "Error requesting resubmission", error: error.message });
+  }
+};
+
+// Reject campaign (can be resubmission or complete rejection based on type parameter)
 exports.rejectCampaign = async (req, res) => {
   try {
     const campaign = await Campaign.findById(req.params.id);
@@ -359,11 +386,32 @@ exports.rejectCampaign = async (req, res) => {
       return res.status(404).json({ message: "Campaign not found" });
     }
 
-    const { reason } = req.body;
+    const { reason, rejectionReason, resubmissionNote, type } = req.body;
+    
+    console.log('Reject campaign received - type:', type, 'resubmissionNote:', resubmissionNote, 'body:', JSON.stringify(req.body));
+    
+    // If type is 'resubmit' or resubmissionNote is provided, treat as resubmission request
+    if (type === 'resubmit' || (resubmissionNote && type !== 'final')) {
+      console.log('Taking resubmission path');
+      const resubmissionMessage = resubmissionNote || reason || rejectionReason || 'Please make changes and resubmit';
+      console.log('Resubmission message:', resubmissionMessage);
+      campaign.status = 'rejected';
+      campaign.rejectedAt = new Date();
+      campaign.rejectionReason = resubmissionMessage;
+      campaign.resubmissionNote = resubmissionMessage;
+      await campaign.save();
 
-    campaign.status = 'rejected';
+      return res.json({ 
+        message: "Resubmission requested successfully", 
+        campaign 
+      });
+    }
+    
+    // Otherwise, treat as complete rejection
+    const rejectionNote = reason || rejectionReason || 'Campaign rejected by manager';
+    campaign.status = 'rejected_final';
     campaign.rejectedAt = new Date();
-    campaign.rejectionReason = reason || 'No reason provided';
+    campaign.rejectionReason = rejectionNote;
     await campaign.save();
 
     res.json({ 

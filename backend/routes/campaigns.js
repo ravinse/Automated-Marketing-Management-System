@@ -17,7 +17,10 @@ router.patch("/submit/:id", campaignController.submitCampaign);
 // Approve campaign - using action in path
 router.patch("/approve/:id", campaignController.approveCampaign);
 
-// Reject campaign - using action in path
+// Request resubmission - using action in path
+router.patch("/resubmit/:id", campaignController.requestResubmission);
+
+// Reject campaign completely - using action in path
 router.patch("/reject/:id", campaignController.rejectCampaign);
 
 // Start campaign (move to running) - using action in path

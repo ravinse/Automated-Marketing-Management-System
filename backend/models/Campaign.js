@@ -55,7 +55,7 @@ const campaignSchema = new mongoose.Schema({
   // Status tracking
   status: {
     type: String,
-    enum: ['draft', 'pending_approval', 'approved', 'running', 'completed', 'rejected'],
+    enum: ['draft', 'pending_approval', 'approved', 'running', 'completed', 'rejected', 'rejected_final'],
     default: 'draft'
   },
   
@@ -83,6 +83,9 @@ const campaignSchema = new mongoose.Schema({
     type: Date
   },
   rejectionReason: {
+    type: String
+  },
+  resubmissionNote: {
     type: String
   },
   completedAt: {

@@ -5,6 +5,7 @@ import API from '../api';
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -67,7 +68,7 @@ const Login = () => {
 
             <div className="mb-4 relative">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={form.password}
                 onChange={handleChange}
                 required
@@ -75,8 +76,11 @@ const Login = () => {
                 placeholder="Password"
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#28b584]"
               />
-              <span className="absolute right-3 top-2.5 text-gray-500 cursor-pointer">
-                Show
+              <span
+                className="absolute right-3 top-2.5 text-gray-500 cursor-pointer select-none"
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? "Hide" : "Show"}
               </span>
             </div>
 

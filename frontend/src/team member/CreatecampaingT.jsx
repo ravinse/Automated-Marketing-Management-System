@@ -13,15 +13,18 @@ function CampaignCreation() {
   const [campaignId, setCampaignId] = useState(null);
   const [currentStep, setCurrentStep] = useState('basic'); // Track current section
   const [autoSaving, setAutoSaving] = useState(false);
+  const [campaignStatus, setCampaignStatus] = useState(null);
+  const [resubmissionNote, setResubmissionNote] = useState(null);
+  const [rejectedAt, setRejectedAt] = useState(null);
   
   // Debug log
   useEffect(() => {
     console.log('CampaignCreation component mounted');
     loadTemplates();
     
-    // Check if campaignId is in URL (for editing existing campaign)
+    // Check if campaignId or edit is in URL (for editing existing campaign)
     const params = new URLSearchParams(location.search);
-    const urlCampaignId = params.get('campaignId');
+    const urlCampaignId = params.get('campaignId') || params.get('edit');
     const templateId = params.get('templateId');
     
     if (urlCampaignId) {
@@ -44,12 +47,21 @@ function CampaignCreation() {
       // Set campaign ID
       setCampaignId(campaign._id);
       
+      // Store campaign status and resubmission info
+      setCampaignStatus(campaign.status);
+      if (campaign.status === 'rejected' && (campaign.resubmissionNote || campaign.rejectionReason)) {
+        setResubmissionNote(campaign.resubmissionNote || campaign.rejectionReason);
+        setRejectedAt(campaign.rejectedAt);
+      }
+      
       // Populate form data
       setFormData({
         title: campaign.title || '',
         description: campaign.description || '',
         startDate: campaign.startDate ? campaign.startDate.split('T')[0] : '',
+        startTime: campaign.startDate ? new Date(campaign.startDate).toTimeString().slice(0, 5) : '',
         endDate: campaign.endDate ? campaign.endDate.split('T')[0] : '',
+        endTime: campaign.endDate ? new Date(campaign.endDate).toTimeString().slice(0, 5) : '',
         selectedFilters: campaign.selectedFilters || [],
         customerSegments: campaign.customerSegments || [],
         emailSubject: campaign.emailSubject || '',
@@ -97,7 +109,9 @@ function CampaignCreation() {
     title: '',
     description: '',
     startDate: '',
+    startTime: '',
     endDate: '',
+    endTime: '',
     selectedFilters: [],
     customerSegments: [],
     emailSubject: '',
@@ -253,9 +267,12 @@ function CampaignCreation() {
       return;
     }
 
-    // Validate that end date is after start date
-    if (new Date(formData.endDate) <= new Date(formData.startDate)) {
-      alert('End date must be after start date');
+    // Validate that end date/time is after start date/time
+    const startDateTime = new Date(`${formData.startDate}T${formData.startTime || '00:00'}`);
+    const endDateTime = new Date(`${formData.endDate}T${formData.endTime || '00:00'}`);
+    
+    if (endDateTime <= startDateTime) {
+      alert('End date and time must be after start date and time');
       return;
     }
 
@@ -275,11 +292,14 @@ function CampaignCreation() {
       console.log('Form data being sent:', formData);
       
       // Create or update campaign with pending_approval status
+      const startDateTime = `${formData.startDate}T${formData.startTime || '00:00'}:00`;
+      const endDateTime = `${formData.endDate}T${formData.endTime || '00:00'}:00`;
+      
       const campaignData = {
         title: formData.title,
         description: formData.description,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
+        startDate: startDateTime,
+        endDate: endDateTime,
         emailSubject: formData.emailSubject,
         emailContent: formData.emailContent,
         smsContent: formData.smsContent || '',
@@ -350,7 +370,9 @@ function CampaignCreation() {
         title: '',
         description: '',
         startDate: '',
+        startTime: '',
         endDate: '',
+        endTime: '',
         selectedFilters: [],
         customerSegments: [],
         emailSubject: '',
@@ -441,7 +463,9 @@ function CampaignCreation() {
         title: '',
         description: '',
         startDate: '',
+        startTime: '',
         endDate: '',
+        endTime: '',
         selectedFilters: [],
         customerSegments: [],
         emailSubject: '',
@@ -569,6 +593,50 @@ function CampaignCreation() {
         </div>
       )}
 
+      {/* Resubmission Notice - Show when editing rejected campaign */}
+      {campaignStatus === 'rejected' && resubmissionNote && (
+        <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-l-4 border-orange-500 rounded-lg shadow-lg mb-6 animate-pulse">
+          <div className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-xl font-bold text-orange-900">⚠️ Manager Feedback Required</h3>
+                  {rejectedAt && (
+                    <span className="text-sm text-orange-700 bg-orange-200 px-2 py-1 rounded">
+                      {new Date(rejectedAt).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-orange-800 mb-3 font-medium">
+                  Your manager has requested changes to this campaign. Please review the feedback below and make the necessary updates before resubmitting.
+                </p>
+                <div className="bg-white border-2 border-orange-300 rounded-lg p-4 mb-3 shadow-inner">
+                  <p className="text-xs font-semibold text-orange-900 mb-2 uppercase tracking-wide">Manager's Notes:</p>
+                  <p className="text-gray-900 font-medium whitespace-pre-wrap leading-relaxed">
+                    {resubmissionNote}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-orange-800 bg-orange-200 rounded px-3 py-2">
+                  <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  <span className="font-semibold">
+                    Make your changes below, then click "Submit for Approval" to resubmit this campaign.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Load Template Section - Only show when creating new campaign, not when editing */}
         {!campaignId && templates.length > 0 && (
@@ -641,11 +709,11 @@ function CampaignCreation() {
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
-                  Start Date <span className="text-red-500">*</span>
-                </label>
+            <div>
+              <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
+                Start Date & Time <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
                 <input
                   type="date"
                   id="startDate"
@@ -662,11 +730,21 @@ function CampaignCreation() {
                   }}
                   className="w-full p-2 border border-gray-300 rounded"
                 />
+                <input
+                  type="time"
+                  id="startTime"
+                  name="startTime"
+                  value={formData.startTime}
+                  onChange={handleChange}
+                  className="w-full p-2 border border-gray-300 rounded"
+                />
               </div>
-              <div>
-                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
-                  End Date <span className="text-red-500">*</span>
-                </label>
+            </div>
+            <div>
+              <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
+                End Date & Time <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
                 <input
                   type="date"
                   id="endDate"
@@ -675,6 +753,14 @@ function CampaignCreation() {
                   onChange={handleChange}
                   required
                   min={formData.startDate}
+                  className="w-full p-2 border border-gray-300 rounded"
+                />
+                <input
+                  type="time"
+                  id="endTime"
+                  name="endTime"
+                  value={formData.endTime}
+                  onChange={handleChange}
                   className="w-full p-2 border border-gray-300 rounded"
                 />
               </div>

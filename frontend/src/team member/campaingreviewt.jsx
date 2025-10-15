@@ -185,26 +185,156 @@ const Campaignreview = () => {
                           </div>
                         </div>
                         
-                        <div className='mt-5'><label className='font-semibold'>Content Preview</label></div>
+                        <div className='mt-5'><label className='font-semibold'>Email Content</label></div>
                        <div className='mt-2'> 
                         <div className="w-3/4 min-h-[200px] px-3 py-2 border bg-gray-50 rounded-2xl text-gray-700 whitespace-pre-wrap">
-                          {campaign.content || 'No content'}
+                          {campaign.emailContent || 'No content'}
                         </div>
                        </div>
 
-                        <div className='mt-8 border-t pt-6'>
-                          
+                        <div className='mt-5'><label className='font-semibold'>SMS Content</label></div>
+                       <div className='mt-2'> 
+                        <div className="w-3/4 min-h-[200px] px-3 py-2 border bg-gray-50 rounded-2xl text-gray-700 whitespace-pre-wrap">
+                          {campaign.smsContent || 'No SMS content'}
+                        </div>
+                       </div>
 
+                        {/* Show resubmission note if campaign needs resubmission */}
+                        {campaign.status === 'rejected' && (
+                          <div className='mt-8 border-t pt-6'>
+                            <div className='bg-orange-50 border-2 border-orange-300 rounded-2xl p-6'>
+                              <div className='flex items-start gap-3 mb-4'>
+                                <svg className="w-6 h-6 text-orange-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <div className='flex-1'>
+                                  <h3 className='text-lg font-bold text-orange-800 mb-1'>Resubmission Required</h3>
+                                  <p className='text-sm text-orange-700'>Your manager has requested changes to this campaign before approval.</p>
+                                </div>
+                              </div>
+                              
+                              <div className='mb-4'>
+                                <p className='text-sm font-semibold text-gray-700 mb-1'>Requested On:</p>
+                                <p className='text-gray-900'>
+                                  {campaign.rejectedAt 
+                                    ? new Date(campaign.rejectedAt).toLocaleString()
+                                    : 'N/A'}
+                                </p>
+                              </div>
+                              
+                              <div>
+                                <p className='text-sm font-semibold text-gray-700 mb-2'>Manager's Feedback:</p>
+                                <div className='bg-white border-2 border-orange-200 rounded-lg p-4'>
+                                  <p className='text-gray-900 whitespace-pre-wrap font-medium'>
+                                    {campaign.resubmissionNote || campaign.rejectionReason || 'No feedback provided'}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div className='mt-4 p-3 bg-orange-100 rounded-lg'>
+                                <p className='text-sm text-orange-800'>
+                                  <strong>Next Steps:</strong> Please review the feedback above, make the necessary changes, and resubmit your campaign for approval.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Show rejection message if campaign is permanently rejected */}
+                        {campaign.status === 'rejected_final' && (
+                          <div className='mt-8 border-t pt-6'>
+                            <div className='bg-red-50 border-2 border-red-300 rounded-2xl p-6'>
+                              <div className='flex items-start gap-3 mb-4'>
+                                <svg className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div className='flex-1'>
+                                  <h3 className='text-lg font-bold text-red-800 mb-1'>Campaign Rejected</h3>
+                                  <p className='text-sm text-red-700'>This campaign has been permanently rejected by the manager.</p>
+                                </div>
+                              </div>
+                              
+                              <div className='mb-4'>
+                                <p className='text-sm font-semibold text-gray-700 mb-1'>Rejected On:</p>
+                                <p className='text-gray-900'>
+                                  {campaign.rejectedAt 
+                                    ? new Date(campaign.rejectedAt).toLocaleString()
+                                    : 'N/A'}
+                                </p>
+                              </div>
+                              
+                              <div>
+                                <p className='text-sm font-semibold text-gray-700 mb-2'>Rejection Reason:</p>
+                                <div className='bg-white border-2 border-red-200 rounded-lg p-4'>
+                                  <p className='text-gray-900 whitespace-pre-wrap font-medium'>
+                                    {campaign.rejectionReason || 'No reason provided'}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div className='mt-4 p-3 bg-red-100 rounded-lg'>
+                                <p className='text-sm text-red-800'>
+                                  <strong>Note:</strong> This campaign cannot be resubmitted. You may delete it or create a new campaign.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className='mt-8 border-t pt-6'>
                           <div className='flex gap-4 w-auto mt-6'> 
-                            
-                           
-                            <button 
-                              type="button" 
-                              onClick={() => navigate(-1)}
-                              className='px-6 py-2 bg-gray-400 text-white rounded-3xl hover:bg-gray-500 font-medium'
-                            >
-                              Cancel
-                            </button>
+                            {campaign.status === 'rejected' ? (
+                              <>
+                                <button 
+                                  type="button" 
+                                  onClick={() => navigate(`/createcampaingt?edit=${campaign._id}`)}
+                                  className='px-8 py-3 bg-green-600 text-white rounded-3xl hover:bg-green-700 font-semibold text-base transition-colors shadow-lg'
+                                >
+                                  Edit & Resubmit Campaign
+                                </button>
+                                <button 
+                                  type="button" 
+                                  onClick={() => navigate(-1)}
+                                  className='px-6 py-3 bg-gray-400 text-white rounded-3xl hover:bg-gray-500 font-medium transition-colors'
+                                >
+                                  Back
+                                </button>
+                              </>
+                            ) : campaign.status === 'rejected_final' ? (
+                              <>
+                                <button 
+                                  type="button" 
+                                  onClick={() => {
+                                    if (window.confirm('Are you sure you want to delete this rejected campaign?')) {
+                                      fetch(`${API_URL}/campaigns/${campaign._id}`, { method: 'DELETE' })
+                                        .then(() => {
+                                          alert('Campaign deleted successfully');
+                                          navigate('/thome');
+                                        })
+                                        .catch(err => alert('Failed to delete campaign'));
+                                    }
+                                  }}
+                                  className='px-6 py-3 bg-red-600 text-white rounded-3xl hover:bg-red-700 font-medium transition-colors'
+                                >
+                                  Delete Campaign
+                                </button>
+                                <button 
+                                  type="button" 
+                                  onClick={() => navigate(-1)}
+                                  className='px-6 py-3 bg-gray-400 text-white rounded-3xl hover:bg-gray-500 font-medium transition-colors'
+                                >
+                                  Back
+                                </button>
+                              </>
+                            ) : (
+                              <button 
+                                type="button" 
+                                onClick={() => navigate(-1)}
+                                className='px-6 py-2 bg-gray-400 text-white rounded-3xl hover:bg-gray-500 font-medium'
+                              >
+                                Back
+                              </button>
+                            )}
                           </div>
                         </div>
                         

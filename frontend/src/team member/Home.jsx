@@ -31,10 +31,10 @@ const Home = () => {
       const data = await response.json();
       const campaigns = data.campaigns || data.items || [];
       
-      // Count campaigns by status
+      // Count campaigns by status (include rejected and rejected_final in sentForApproval)
       const counts = {
         drafted: campaigns.filter(c => c.status === 'draft').length,
-        sentForApproval: campaigns.filter(c => c.status === 'pending_approval').length,
+        sentForApproval: campaigns.filter(c => c.status === 'pending_approval' || c.status === 'rejected' || c.status === 'rejected_final').length,
         running: campaigns.filter(c => c.status === 'running').length,
         finished: campaigns.filter(c => c.status === 'completed').length
       };
@@ -64,7 +64,7 @@ const Home = () => {
       color: 'bg-yellow-500',
       lightColor: 'bg-yellow-50',
       textColor: 'text-yellow-600',
-      description: 'Pending manager approval'
+      description: 'Pending approval or needs resubmission'
     },
     {
       id: 'running',

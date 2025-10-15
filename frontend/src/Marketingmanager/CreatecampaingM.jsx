@@ -52,7 +52,9 @@ function CampaignCreation() {
     title: '',
     description: '',
     startDate: '',
+    startTime: '00:00:00',
     endDate: '',
+    endTime: '23:59:59',
     selectedFilters: [],
     customerSegments: [],
     emailSubject: '',
@@ -269,10 +271,10 @@ function CampaignCreation() {
       if (!response.ok) throw new Error('Failed to submit campaign');
 
       const result = await response.json();
-      setSuccess('Campaign submitted for approval successfully!');
+      setSuccess('Sent for approval');
       
       setTimeout(() => {
-        navigate('/campaigns');
+        navigate('/Campaign');
       }, 2000);
     } catch (error) {
       console.error('Error submitting campaign:', error);
@@ -296,7 +298,9 @@ function CampaignCreation() {
         title: '',
         description: '',
         startDate: '',
+        startTime: '00:00:00',
         endDate: '',
+        endTime: '23:59:59',
         selectedFilters: [],
         customerSegments: [],
         emailSubject: '',
@@ -495,11 +499,12 @@ function CampaignCreation() {
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
-                  Start Date <span className="text-red-500">*</span>
-                </label>
+            {/* Start Date and Time */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Start Date & Time <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
                 <input
                   type="date"
                   id="startDate"
@@ -516,11 +521,25 @@ function CampaignCreation() {
                   }}
                   className="w-full p-2 border border-gray-300 rounded"
                 />
+                <input
+                  type="time"
+                  id="startTime"
+                  name="startTime"
+                  value={formData.startTime}
+                  onChange={handleChange}
+                  required
+                  step="1"
+                  className="w-full p-2 border border-gray-300 rounded"
+                />
               </div>
-              <div>
-                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
-                  End Date <span className="text-red-500">*</span>
-                </label>
+            </div>
+
+            {/* End Date and Time */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                End Date & Time <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
                 <input
                   type="date"
                   id="endDate"
@@ -529,6 +548,16 @@ function CampaignCreation() {
                   onChange={handleChange}
                   required
                   min={formData.startDate}
+                  className="w-full p-2 border border-gray-300 rounded"
+                />
+                <input
+                  type="time"
+                  id="endTime"
+                  name="endTime"
+                  value={formData.endTime}
+                  onChange={handleChange}
+                  required
+                  step="1"
                   className="w-full p-2 border border-gray-300 rounded"
                 />
               </div>
