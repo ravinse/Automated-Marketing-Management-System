@@ -17,6 +17,11 @@ function CampaignCreation() {
   const [resubmissionNote, setResubmissionNote] = useState(null);
   const [rejectedAt, setRejectedAt] = useState(null);
   
+  // Template editing states
+  const [editingTemplateId, setEditingTemplateId] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isCreateTemplateMode, setIsCreateTemplateMode] = useState(false);
+  
   // Debug log
   useEffect(() => {
     console.log('CampaignCreation component mounted');
@@ -26,13 +31,21 @@ function CampaignCreation() {
     const params = new URLSearchParams(location.search);
     const urlCampaignId = params.get('campaignId') || params.get('edit');
     const templateId = params.get('templateId');
+    const editMode = params.get('editMode') === 'true';
+    const createTemplate = params.get('createTemplate') === 'true';
     
     if (urlCampaignId) {
       // Load existing campaign for editing
       loadCampaignForEdit(urlCampaignId);
     } else if (templateId) {
       // Load template
-      handleLoadTemplate(templateId);
+      setEditingTemplateId(templateId);
+      setIsEditMode(editMode);
+      handleLoadTemplate(templateId, editMode);
+    }
+    
+    if (createTemplate) {
+      setIsCreateTemplateMode(true);
     }
   }, [location]);
   
@@ -509,15 +522,21 @@ function CampaignCreation() {
       if (!response.ok) throw new Error('Failed to save template');
 
       const result = await response.json();
-      setSuccess('Template saved successfully!');
-      
-      // Reload templates to show the new one
-      await loadTemplates();
-      
-      // Clear template name field
-      setFormData(prev => ({ ...prev, templateName: '' }));
-      
       console.log('Template saved:', result.template);
+      
+      // Show success message
+      alert('Template saved successfully!');
+      
+      // If in create template mode, redirect to templates page
+      if (isCreateTemplateMode) {
+        navigate('/templatet');
+      } else {
+        // Otherwise, reload templates and clear template name field
+        await loadTemplates();
+        setFormData(prev => ({ ...prev, templateName: '' }));
+        setSuccess('Template saved successfully!');
+      }
+      
     } catch (error) {
       console.error('Error saving template:', error);
       alert('Failed to save template. Please try again.');
@@ -525,7 +544,7 @@ function CampaignCreation() {
   };
 
   // Load Template functionality
-  const handleLoadTemplate = async (templateId) => {
+  const handleLoadTemplate = async (templateId, editMode = false) => {
     if (!templateId) return;
     
     try {
@@ -544,15 +563,69 @@ function CampaignCreation() {
         smsContent: template.smsContent || '',
         selectedFilters: template.selectedFilters || [],
         customerSegments: template.customerSegments || [],
+        templateName: editMode ? template.name : '', // Load template name only in edit mode
         // Note: Attachments are file names, not actual files
         attachments: []
       }));
       
-      setSuccess('Template loaded successfully!');
+      if (editMode) {
+        setSuccess('Template loaded for editing. Make your changes and click "Update Template".');
+      } else {
+        setSuccess('Template loaded successfully!');
+      }
       console.log('Template loaded:', template);
     } catch (error) {
       console.error('Error loading template:', error);
       alert('Failed to load template. Please try again.');
+    }
+  };
+
+  // Update existing template
+  const handleUpdateTemplate = async () => {
+    if (!editingTemplateId) {
+      alert('No template to update');
+      return;
+    }
+
+    if (!formData.templateName.trim()) {
+      alert('Template name is required');
+      return;
+    }
+
+    try {
+      const templateData = {
+        name: formData.templateName,
+        description: formData.description,
+        emailSubject: formData.emailSubject,
+        emailContent: formData.emailContent,
+        smsContent: formData.smsContent,
+        selectedFilters: formData.selectedFilters,
+        customerSegments: formData.customerSegments,
+        attachments: formData.attachments.map(file => file.name || file)
+      };
+
+      const response = await fetch(`${API_URL}/templates/${editingTemplateId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(templateData)
+      });
+
+      if (!response.ok) throw new Error('Failed to update template');
+
+      const result = await response.json();
+      console.log('Template updated:', result.template);
+      
+      // Show success message and redirect
+      alert('Template updated successfully!');
+      
+      // Navigate back to templates page
+      navigate('/templatet');
+      
+    } catch (error) {
+      console.error('Error updating template:', error);
+      alert('Failed to update template. Please try again.');
     }
   };
 
@@ -564,13 +637,29 @@ function CampaignCreation() {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold">Create New Campaign</h1>
+          <h1 className="text-2xl font-bold">
+            {isEditMode ? 'Edit Template' : isCreateTemplateMode ? 'Create New Template' : 'Create New Campaign'}
+          </h1>
           <p className="text-gray-600">
-            Define your campaign's core details, target audience, and content to engage your customers effectively.
+            {isEditMode 
+              ? 'Update your template content and settings.'
+              : isCreateTemplateMode
+              ? 'Design a reusable template for future campaigns. Fill in the details below and save as a template.'
+              : 'Define your campaign\'s core details, target audience, and content to engage your customers effectively.'}
           </p>
-          {campaignId && (
+          {campaignId && !isEditMode && !isCreateTemplateMode && (
             <p className="text-sm text-green-600 mt-1">
               ✓ Draft saved (ID: {campaignId})
+            </p>
+          )}
+          {isEditMode && editingTemplateId && (
+            <p className="text-sm text-blue-600 mt-1">
+              ✏️ Editing template (ID: {editingTemplateId})
+            </p>
+          )}
+          {isCreateTemplateMode && (
+            <p className="text-sm text-blue-600 mt-1">
+              📝 Template creation mode
             </p>
           )}
         </div>
@@ -638,8 +727,8 @@ function CampaignCreation() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Load Template Section - Only show when creating new campaign, not when editing */}
-        {!campaignId && templates.length > 0 && (
+        {/* Load Template Section - Only show when creating new campaign, not when editing campaign or template */}
+        {!campaignId && !isEditMode && templates.length > 0 && (
           <div className="bg-white p-6 rounded-lg shadow">
             <h3 className="text-lg font-semibold mb-4">Load from Template</h3>
             <div className="mb-4">
@@ -1095,12 +1184,14 @@ function CampaignCreation() {
 
         {/* Save Template Section */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold mb-4">Save as Template</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            {isEditMode ? 'Template Details' : 'Save as Template'}
+          </h3>
           
           {/* Save Template Section */}
           <div className="flex items-center gap-4">
             <label htmlFor="templateName" className="text-sm font-medium text-gray-700">
-              Save as Template
+              {isEditMode ? 'Template Name' : 'Save as Template'}
             </label>
             <input
               type="text"
@@ -1111,44 +1202,97 @@ function CampaignCreation() {
               placeholder="Enter Template Name"
               className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <button
-              type="button"
-              onClick={handleSaveAsTemplate}
-              disabled={!formData.templateName.trim()}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Save Template
-            </button>
+            {isEditMode ? (
+              <button
+                type="button"
+                onClick={handleUpdateTemplate}
+                disabled={!formData.templateName.trim()}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Update Template
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSaveAsTemplate}
+                disabled={!formData.templateName.trim()}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Save Template
+              </button>
+            )}
           </div>
           <p className="text-sm text-gray-500 mt-2">
-            Templates save your campaign structure and content for reuse
+            {isEditMode 
+              ? 'Update this template to save your changes'
+              : 'Templates save your campaign structure and content for reuse'}
           </p>
         </div>
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-4">
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="px-4 py-2 text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
-          >
-            Clear Form
-          </button>
-          
-          <button
-            type="button"
-            onClick={handleSaveAsDraft}
-            className="px-4 py-2 text-white bg-gray-600 rounded hover:bg-gray-700 transition-colors"
-          >
-            Save as Draft
-          </button>
-          
-          <button
-            type="submit"
-            className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
-          >
-            Submit for Approval
-          </button>
+          {isEditMode ? (
+            <>
+              <button
+                type="button"
+                onClick={() => navigate('/templatet')}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleUpdateTemplate}
+                disabled={!formData.templateName.trim()}
+                className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Update Template
+              </button>
+            </>
+          ) : isCreateTemplateMode ? (
+            <>
+              <button
+                type="button"
+                onClick={() => navigate('/templatet')}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveAsTemplate}
+                disabled={!formData.templateName.trim()}
+                className="px-4 py-2 text-white bg-green-600 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Save Template
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+              >
+                Clear Form
+              </button>
+              
+              <button
+                type="button"
+                onClick={handleSaveAsDraft}
+                className="px-4 py-2 text-white bg-gray-600 rounded hover:bg-gray-700 transition-colors"
+              >
+                Save as Draft
+              </button>
+              
+              <button
+                type="submit"
+                className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
+              >
+                Submit for Approval
+              </button>
+            </>
+          )}
         </div>
       </form>
     </div>

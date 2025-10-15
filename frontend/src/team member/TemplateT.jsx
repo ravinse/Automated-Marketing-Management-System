@@ -39,6 +39,11 @@ const Templete = () => {
     navigate(`/createcampaingt?templateId=${templateId}`);
   };
 
+  const handleEditTemplate = async (templateId) => {
+    // Navigate to campaign creation page with template ID in edit mode
+    navigate(`/createcampaingt?templateId=${templateId}&editMode=true`);
+  };
+
   const handleDeleteTemplate = async (templateId) => {
     if (!window.confirm('Are you sure you want to delete this template?')) return;
     
@@ -66,13 +71,20 @@ const Templete = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-16 2xl:px-32 py-6 sm:py-8 lg:py-10">
         
         {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-2">
-            Campaign Templates
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600">
-            Saved templates you can reuse for new campaigns
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+          <div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-2">
+              Campaign Templates
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600">
+              Saved templates you can reuse for new campaigns
+            </p>
+          </div>
+          <Link to="/createcampaingt?createTemplate=true">
+            <button className="bg-blue-600 text-white px-6 py-2.5 rounded-full hover:bg-blue-700 transition-colors font-medium shadow-sm w-full sm:w-auto">
+              Add New Template
+            </button>
+          </Link>
         </div>
 
         {/* Loading State */}
@@ -95,11 +107,7 @@ const Templete = () => {
             {templates.length === 0 ? (
               <div className="p-6 sm:p-10 text-center">
                 <p className="text-gray-600 mb-4 text-sm sm:text-base">No templates saved yet</p>
-                <Link to="/createcampaingt">
-                  <button className="px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm sm:text-base">
-                    Create Your First Campaign
-                  </button>
-                </Link>
+                <p className="text-gray-500 text-xs sm:text-sm">Click "Add New Template" above to create your first template</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -186,6 +194,12 @@ const Templete = () => {
                               className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-blue-600 text-white text-xs sm:text-sm font-normal hover:bg-blue-700 transition whitespace-nowrap"
                             >
                               Use
+                            </button>
+                            <button 
+                              onClick={() => handleEditTemplate(template._id)}
+                              className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-green-100 text-green-800 text-xs sm:text-sm font-normal hover:bg-green-200 transition whitespace-nowrap"
+                            >
+                              Edit
                             </button>
                             <button 
                               onClick={() => handleDeleteTemplate(template._id)}

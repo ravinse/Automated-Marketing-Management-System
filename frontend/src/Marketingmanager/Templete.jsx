@@ -39,6 +39,11 @@ const Templete = () => {
     navigate(`/createcampaingm?templateId=${templateId}`);
   };
 
+  const handleEditTemplate = async (templateId) => {
+    // Navigate to campaign creation page with template ID in edit mode
+    navigate(`/createcampaingm?templateId=${templateId}&editMode=true`);
+  };
+
   const handleDeleteTemplate = async (templateId) => {
     if (!window.confirm('Are you sure you want to delete this template?')) return;
     
@@ -71,9 +76,9 @@ const Templete = () => {
                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Campaign Templates</h1>
                <p className="text-gray-600 mt-1">Saved templates you can reuse for new campaigns</p>
              </div>
-             <Link to="/createcampaingm">
-               <button className="bg-[#F2F2F5] text-black px-6 py-2.5 rounded-full hover:bg-[#E0E0E5] transition-colors font-medium shadow-sm w-full sm:w-auto">
-                 Create New Campaign
+             <Link to="/createcampaingm?createTemplate=true">
+               <button className="bg-blue-600 text-white px-6 py-2.5 rounded-full hover:bg-blue-700 transition-colors font-medium shadow-sm w-full sm:w-auto">
+                 Add New Template
                </button>
              </Link>
            </div>
@@ -101,11 +106,7 @@ const Templete = () => {
                {templates.length === 0 ? (
                  <div className="p-10 text-center">
                    <p className="text-gray-600 mb-4">No templates saved yet</p>
-                   <Link to="/createcampaingm">
-                     <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                       Create Your First Campaign
-                     </button>
-                   </Link>
+                   <p className="text-gray-500 text-sm">Click "Add New Template" above to create your first template</p>
                  </div>
                ) : (
                  <div className="overflow-x-auto">
@@ -177,19 +178,27 @@ const Templete = () => {
                     {template.usageCount || 0} times
                 </p>
             </td>
-            <td className="flex gap-2 p-4 border-b border-slate-200">
-                <button 
-                  onClick={() => handleUseTemplate(template._id)}
-                  className="px-4 py-2 rounded-full bg-blue-600 text-white font-normal hover:bg-blue-700 transition"
-                >
-                  Use Template
-                </button>
-                <button 
-                  onClick={() => handleDeleteTemplate(template._id)}
-                  className="px-4 py-2 rounded-full bg-red-100 text-red-800 font-normal hover:bg-red-200 transition"
-                >
-                  Delete
-                </button>
+            <td className="p-4 border-b border-slate-200">
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => handleUseTemplate(template._id)}
+                    className="px-4 py-2 rounded-full bg-blue-600 text-white font-normal hover:bg-blue-700 transition"
+                  >
+                    Use
+                  </button>
+                  <button 
+                    onClick={() => handleEditTemplate(template._id)}
+                    className="px-4 py-2 rounded-full bg-green-100 text-green-800 font-normal hover:bg-green-200 transition"
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteTemplate(template._id)}
+                    className="px-4 py-2 rounded-full bg-red-100 text-red-800 font-normal hover:bg-red-200 transition"
+                  >
+                    Delete
+                  </button>
+                </div>
             </td>
         </tr>
         ))}
