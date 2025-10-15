@@ -6,7 +6,7 @@
  * Usage:
  * 1. Set BACKEND_URL and CRON_SECRET in Railway environment variables
  * 2. Create a Railway cron service that runs: node cron-trigger.js
- * 3. Set schedule to: */5 * * * * (every 5 minutes)
+ * 3. Set schedule to every 5 minutes in Railway dashboard
  */
 
 const https = require('https');

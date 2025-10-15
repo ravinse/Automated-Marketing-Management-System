@@ -34,7 +34,7 @@ const verifyCronSecret = (req, res, next) => {
  * @access Public (should be called by Railway Cron or authenticated service)
  * 
  * Railway Cron Schedule Suggestion: Every 5 minutes
- * Cron Expression: */5 * * * *
+ * Cron Expression: star-slash-5 space star space star space star space star (every 5 minutes)
  */
 router.get('/campaigns', verifyCronSecret, async (req, res) => {
   try {
@@ -60,8 +60,7 @@ router.get('/campaigns', verifyCronSecret, async (req, res) => {
  * @access Public (should be called by Railway Cron or authenticated service)
  * 
  * Railway Cron Schedule Suggestion: Every 5-10 minutes
- * Cron Expression: */5 * * * * (every 5 minutes)
- *                 */10 * * * * (every 10 minutes)
+ * Use cron schedule: every 5 or 10 minutes
  */
 router.get('/segmentation', verifyCronSecret, async (req, res) => {
   try {
@@ -101,7 +100,6 @@ router.get('/health', (req, res) => {
  * @access Public (should be called by Railway Cron or authenticated service)
  * 
  * Railway Cron Schedule Suggestion: Every 5 minutes
- * Cron Expression: */5 * * * *
  */
 router.get('/all', verifyCronSecret, async (req, res) => {
   try {
