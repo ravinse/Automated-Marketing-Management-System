@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
 const authMiddleware = (req, res, next) => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
@@ -24,4 +25,15 @@ const adminOnly = (req, res, next) => {
   }
 };
 
-module.exports = {authMiddleware, adminOnly};
+// Middleware to validate MongoDB ObjectId
+const validateObjectId = (paramName = 'id') => {
+  return (req, res, next) => {
+    const id = req.params[paramName];
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: `Invalid ${paramName} format` });
+    }
+    next();
+  };
+};
+
+module.exports = {authMiddleware, adminOnly, validateObjectId};

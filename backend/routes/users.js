@@ -1,5 +1,5 @@
 const express = require("express");
-const { authMiddleware, adminOnly } = require("../middleware/authMiddleware");
+const { authMiddleware, adminOnly, validateObjectId } = require("../middleware/authMiddleware");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const generateRandomPassword = require("../utils/generatePassword");
@@ -55,6 +55,11 @@ router.post("/", authMiddleware, adminOnly, async (req, res) => {
     });
   } catch (err) {
     console.error(err);
+    // Handle duplicate key errors
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyPattern || {})[0] || 'field';
+      return res.status(409).json({ error: `${field} already exists` });
+    }
     res.status(500).json({ error: "❌ Server error" });
   }
 });
@@ -62,7 +67,7 @@ router.post("/", authMiddleware, adminOnly, async (req, res) => {
 // @route PUT /api/users/:id
 // @desc Update user (Admin only)
 // @access Private (Admin only)
-router.put("/:id", authMiddleware, adminOnly, async (req, res) => {
+router.put("/:id", authMiddleware, adminOnly, validateObjectId(), async (req, res) => {
   const { name, username, email, role } = req.body;
   
   try {
@@ -90,6 +95,11 @@ router.put("/:id", authMiddleware, adminOnly, async (req, res) => {
     });
   } catch (err) {
     console.error(err);
+    // Handle duplicate key errors
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyPattern || {})[0] || 'field';
+      return res.status(409).json({ error: `${field} already exists` });
+    }
     res.status(500).json({ error: "❌ Server error" });
   }
 });
@@ -97,7 +107,7 @@ router.put("/:id", authMiddleware, adminOnly, async (req, res) => {
 // @route DELETE /api/users/:id
 // @desc Delete user (Admin only)
 // @access Private (Admin only)
-router.delete("/:id", authMiddleware, adminOnly, async (req, res) => {
+router.delete("/:id", authMiddleware, adminOnly, validateObjectId(), async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
