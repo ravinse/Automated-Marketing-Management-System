@@ -19,7 +19,6 @@ const Login = () => {
       console.log("backend response:", res.data);
       localStorage.setItem("token", res.data.token); // Save JWT
       localStorage.setItem("role", res.data.user.role); // Save user role
-      alert("Login successful!");
 
       switch (res.data.user.role) {
         case 'admin':

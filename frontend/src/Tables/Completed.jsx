@@ -81,37 +81,37 @@ const Completed = () => {
         </h3>
       </div>
       <div className="relative flex flex-col h-full text-gray-700 bg-white shadow-md rounded-lg bg-clip-border overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left table-auto min-w-max">
+        <div className="overflow-hidden">
+          <table className="w-full text-left table-auto">
           <thead>
             <tr>
-              <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-bold leading-none text-slate-500">
+              <th className="p-3 md:p-4 border-b border-slate-300 bg-slate-50">
+                <p className="block text-xs md:text-sm font-bold leading-none text-slate-500">
                   Campaign Name
                 </p>
               </th>
-              <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-bold leading-none text-slate-500">
+              <th className="p-3 md:p-4 border-b border-slate-300 bg-slate-50 hidden lg:table-cell">
+                <p className="block text-xs md:text-sm font-bold leading-none text-slate-500">
                   Description
                 </p>
               </th>
-              <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-bold leading-none text-slate-500">
+              <th className="p-3 md:p-4 border-b border-slate-300 bg-slate-50 hidden md:table-cell">
+                <p className="block text-xs md:text-sm font-bold leading-none text-slate-500">
                   Target Segments
                 </p>
               </th>
-              <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-bold leading-none text-slate-500">
+              <th className="p-3 md:p-4 border-b border-slate-300 bg-slate-50 hidden sm:table-cell">
+                <p className="block text-xs md:text-sm font-bold leading-none text-slate-500">
                   Duration
                 </p>
               </th>
-              <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-bold leading-none text-slate-500">
+              <th className="p-3 md:p-4 border-b border-slate-300 bg-slate-50">
+                <p className="block text-xs md:text-sm font-bold leading-none text-slate-500">
                   Completed
                 </p>
               </th>
-              <th className="p-4 border-b border-slate-300 bg-slate-50">
-                <p className="block text-sm font-bold leading-none text-slate-500">
+              <th className="p-3 md:p-4 border-b border-slate-300 bg-slate-50">
+                <p className="block text-xs md:text-sm font-bold leading-none text-slate-500">
                   Actions
                 </p>
               </th>
@@ -127,18 +127,18 @@ const Completed = () => {
             ) : (
               completedCampaigns.map((campaign) => (
                 <tr key={campaign._id} className="hover:bg-slate-50">
-                  <td className="p-4 border-b border-slate-200">
-                    <p className="block text-sm text-slate-800 font-medium">
+                  <td className="p-3 md:p-4 border-b border-slate-200">
+                    <p className="block text-xs md:text-sm text-slate-800 font-medium break-words">
                       {campaign.title}
                     </p>
                   </td>
-                  <td className="p-4 border-b border-slate-200">
-                    <p className="block text-sm text-slate-600">
+                  <td className="p-3 md:p-4 border-b border-slate-200 hidden lg:table-cell">
+                    <p className="block text-xs md:text-sm text-slate-600 break-words max-w-xs">
                       {campaign.description || 'No description'}
                     </p>
                   </td>
-                  <td className="p-4 border-b border-slate-200">
-                    <p className="block text-sm text-slate-800">
+                  <td className="p-3 md:p-4 border-b border-slate-200 hidden md:table-cell">
+                    <p className="block text-xs md:text-sm text-slate-800 break-words">
                       {campaign.customerSegments && campaign.customerSegments.length > 0
                         ? campaign.customerSegments.join(', ')
                         : campaign.targetSegments && campaign.targetSegments.length > 0
@@ -146,21 +146,21 @@ const Completed = () => {
                         : 'All Customers'}
                     </p>
                   </td>
-                  <td className="p-4 border-b border-slate-200">
-                    <p className="block text-sm text-slate-800">
+                  <td className="p-3 md:p-4 border-b border-slate-200 hidden sm:table-cell">
+                    <p className="block text-xs md:text-sm text-slate-800 whitespace-nowrap">
                       {formatDate(campaign.startDate)} - {formatDate(campaign.endDate)}
                     </p>
                   </td>
-                  <td className="p-4 border-b border-slate-200">
-                    <p className="block text-sm text-slate-800">
+                  <td className="p-3 md:p-4 border-b border-slate-200">
+                    <p className="block text-xs md:text-sm text-slate-800 whitespace-nowrap">
                       {formatDate(campaign.completedAt)}
                     </p>
                   </td>
-                  <td className="p-4 border-b border-slate-200">
+                  <td className="p-3 md:p-4 border-b border-slate-200">
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleDelete(campaign._id)}
-                        className="text-sm text-red-600 hover:text-red-800 font-medium"
+                        className="text-xs md:text-sm text-red-600 hover:text-red-800 font-medium"
                       >
                         Delete
                       </button>
