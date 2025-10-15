@@ -2,6 +2,7 @@ const Campaign = require("../models/Campaign");
 const Customer = require("../models/Customer");
 const { sendBatchEmails } = require("../utils/emailService");
 const { sendBatchSMS } = require("../utils/smsService");
+const { MongoClient } = require('mongodb');
 
 // Get all campaigns
 exports.getCampaigns = async (req, res) => {
@@ -240,15 +241,36 @@ exports.approveCampaign = async (req, res) => {
       return res.status(404).json({ message: "Campaign not found" });
     }
 
-    // Set to running status directly when approved
-    campaign.status = 'running';
-    campaign.approvedAt = new Date();
-    await campaign.save();
-
-    res.json({ 
-      message: "Campaign approved and started successfully", 
-      campaign 
-    });
+    const now = new Date();
+    campaign.approvedAt = now;
+    
+    // Check if campaign should start immediately
+    const shouldStartImmediately = !campaign.startDate || new Date(campaign.startDate) <= now;
+    
+    if (shouldStartImmediately) {
+      // Set to running status and execute immediately
+      campaign.status = 'running';
+      await campaign.save();
+      
+      // Execute campaign (send emails/SMS to segmented customers)
+      const { executeCampaignAutomatically } = require('../utils/campaignScheduler');
+      const executionResult = await executeCampaignAutomatically(campaign);
+      
+      res.json({ 
+        message: "Campaign approved and executed successfully", 
+        campaign,
+        execution: executionResult
+      });
+    } else {
+      // Schedule for later - set to approved status
+      campaign.status = 'approved';
+      await campaign.save();
+      
+      res.json({ 
+        message: `Campaign approved and scheduled to start on ${campaign.startDate}`, 
+        campaign 
+      });
+    }
   } catch (error) {
     console.error('Error approving campaign:', error);
     res.status(500).json({ message: "Error approving campaign", error: error.message });
@@ -580,6 +602,7 @@ exports.updateCampaignMetrics = async (req, res) => {
 
 // Execute campaign - send emails and SMS to targeted customers
 exports.executeCampaign = async (req, res) => {
+  let mongoClient;
   try {
     const campaign = await Campaign.findById(req.params.id);
     if (!campaign) {
@@ -601,30 +624,59 @@ exports.executeCampaign = async (req, res) => {
       });
     }
 
-    // Get targeted customers
+    // Get targeted customers from segmentation database
     let customers = [];
     
+    // Connect to segmentation database
+    const MONGODB_URI = process.env.MONGO_URI || process.env.MONGODB_URI;
+    const DATABASE_NAME = process.env.SEGMENTATION_DB || 'retail_db';
+    const ORDERS_COLLECTION = process.env.ORDERS_COLLECTION || 'newdatabase';
+    
+    mongoClient = new MongoClient(MONGODB_URI);
+    await mongoClient.connect();
+    const db = mongoClient.db(DATABASE_NAME);
+    const ordersCollection = db.collection(ORDERS_COLLECTION);
+    
     if (campaign.targetedCustomerIds && campaign.targetedCustomerIds.length > 0) {
-      // Get customers by IDs
-      customers = await Customer.find({
-        _id: { $in: campaign.targetedCustomerIds }
-      });
-    } else if (campaign.customerSegments && campaign.customerSegments.length > 0) {
-      // Get customers by segments
-      customers = await Customer.find({
-        segment: { $in: campaign.customerSegments }
-      });
+      // Get customers by IDs from orders collection
+      console.log(`📋 Fetching ${campaign.targetedCustomerIds.length} targeted customers by IDs`);
+      
+      const customerData = await ordersCollection.aggregate([
+        {
+          $match: { customer_id: { $in: campaign.targetedCustomerIds } }
+        },
+        {
+          $group: {
+            _id: "$customer_id",
+            customer_name: { $first: "$customer_name" },
+            email: { $first: "$email" },
+            phone_number: { $first: "$phone_number" },
+            gender: { $first: "$gender" }
+          }
+        }
+      ]).toArray();
+      
+      customers = customerData.map(c => ({
+        _id: c._id,
+        name: c.customer_name,
+        email: c.email,
+        phone: c.phone_number
+      }));
     } else {
       return res.status(400).json({ 
-        message: "Campaign has no targeted customers" 
+        message: "Campaign has no targeted customers. Please ensure customer IDs are saved in the campaign." 
       });
     }
 
     if (customers.length === 0) {
       return res.status(400).json({ 
-        message: "No customers found for this campaign" 
+        message: "No customers found for this campaign. The targeted customer IDs may be invalid." 
       });
     }
+
+    console.log(`📧 Executing campaign: ${campaign.title}`);
+    console.log(`📧 Email Subject: ${campaign.emailSubject}`);
+    console.log(`📧 Targeting ${customers.length} customers`);
 
     // Initialize execution results
     const executionResults = {
@@ -636,26 +688,26 @@ exports.executeCampaign = async (req, res) => {
 
     // Send emails if email content is provided
     if (campaign.emailSubject && campaign.emailContent) {
-      console.log(`Sending emails to ${customers.length} customers...`);
+      console.log(`📧 Sending emails with subject: "${campaign.emailSubject}"`);
       
       const emailRecipients = customers
         .filter(customer => customer.email) // Only customers with email
         .map(customer => ({
           email: customer.email,
-          subject: campaign.emailSubject,
-          content: campaign.emailContent,
+          subject: campaign.emailSubject, // Use campaign's email subject
+          content: campaign.emailContent, // Use campaign's email content
         }));
 
       if (emailRecipients.length > 0) {
         executionResults.emailResults = await sendBatchEmails(
           emailRecipients,
-          campaign.emailSubject,
-          campaign.emailContent
+          campaign.emailSubject, // Pass campaign's email subject as default
+          campaign.emailContent  // Pass campaign's email content as default
         );
         
-        console.log(`Emails sent: ${executionResults.emailResults.sent}/${executionResults.emailResults.total}`);
+        console.log(`✉️ Emails sent: ${executionResults.emailResults.sent}/${executionResults.emailResults.total}`);
       } else {
-        console.log('No customers with email addresses found');
+        console.log('⚠️ No customers with email addresses found');
         executionResults.emailResults = {
           total: 0,
           sent: 0,
@@ -667,13 +719,13 @@ exports.executeCampaign = async (req, res) => {
 
     // Send SMS if SMS content is provided
     if (campaign.smsContent) {
-      console.log(`Sending SMS to ${customers.length} customers...`);
+      console.log(`📱 Sending SMS with message: "${campaign.smsContent.substring(0, 50)}..."`);
       
       const smsRecipients = customers
         .filter(customer => customer.phone) // Only customers with phone numbers
         .map(customer => ({
           phone: customer.phone,
-          message: campaign.smsContent,
+          message: campaign.smsContent, // Use campaign's SMS content
         }));
 
       if (smsRecipients.length > 0) {
@@ -682,9 +734,9 @@ exports.executeCampaign = async (req, res) => {
           campaign.smsContent
         );
         
-        console.log(`SMS sent: ${executionResults.smsResults.sent}/${executionResults.smsResults.total}`);
+        console.log(`📱 SMS sent: ${executionResults.smsResults.sent}/${executionResults.smsResults.total}`);
       } else {
-        console.log('No customers with phone numbers found');
+        console.log('⚠️ No customers with phone numbers found');
         executionResults.smsResults = {
           total: 0,
           sent: 0,
@@ -714,6 +766,8 @@ exports.executeCampaign = async (req, res) => {
 
     await campaign.save();
 
+    console.log(`✅ Campaign "${campaign.title}" executed successfully!`);
+
     res.json({ 
       message: "Campaign executed successfully",
       campaign,
@@ -735,6 +789,11 @@ exports.executeCampaign = async (req, res) => {
     });
   } catch (error) {
     console.error('Error executing campaign:', error);
+    console.error('Error details:', error.stack);
     res.status(500).json({ message: "Error executing campaign", error: error.message });
+  } finally {
+    if (mongoClient) {
+      await mongoClient.close();
+    }
   }
 };

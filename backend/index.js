@@ -3,6 +3,7 @@ const cors = require("cors");
 require("dotenv").config();
 const connectDB = require("./config/db");
 const { startCampaignScheduler } = require("./utils/campaignScheduler");
+const { startSegmentationScheduler } = require("./utils/segmentationScheduler");
 
 const app = express();
 
@@ -28,6 +29,9 @@ connectDB();
 
 // Start campaign scheduler to auto-complete expired campaigns
 startCampaignScheduler();
+
+// Start segmentation scheduler to auto-segment new customers
+startSegmentationScheduler();
 
 // Routes
 const authRoutes = require("./routes/auth");

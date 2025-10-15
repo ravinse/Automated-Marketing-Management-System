@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PendingApproval from '../Tables/PendingApproval.jsx';
+import Approved from '../Tables/Approved.jsx';
 import Running from '../Tables/Running.jsx'
 import Completed from '../Tables/Completed.jsx';
 import { Link } from 'react-router-dom';
@@ -8,7 +9,7 @@ import Navbarm from './Navbarm.jsx';
 
 const Campaign = () => {
   const [activeTab, setActiveTab] = useState('Pending Approval');
-  const tabs = ['Pending Approval', 'Running', 'Completed'];
+  const tabs = ['Pending Approval', 'Approved', 'Running', 'Completed'];
   return (
     <>
       <div>
@@ -53,6 +54,7 @@ const Campaign = () => {
         {/* Content Section */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {activeTab === 'Pending Approval' && <PendingApproval />}
+          {activeTab === 'Approved' && <Approved />}
           {activeTab === 'Running' && <Running />}
           {activeTab === 'Completed' && <Completed />}
         </div>
