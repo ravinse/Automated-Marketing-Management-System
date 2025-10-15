@@ -9,6 +9,12 @@ router.get("/", campaignController.getCampaigns);
 // Get campaigns by status
 router.get("/status/:status", campaignController.getCampaignsByStatus);
 
+// Get overall performance metrics
+router.get("/performance/overall", campaignController.getOverallPerformance);
+
+// Get completed campaigns with performance metrics
+router.get("/performance/completed", campaignController.getCompletedCampaignsPerformance);
+
 // Create new campaign
 router.post("/", campaignController.createCampaign);
 
@@ -38,6 +44,9 @@ router.get("/:id", validateObjectId(), campaignController.getCampaignById);
 
 // Update campaign (full update)
 router.put("/:id", validateObjectId(), campaignController.updateCampaign);
+
+// Update campaign performance metrics
+router.patch("/:id/metrics", validateObjectId(), campaignController.updateCampaignMetrics);
 
 // Delete campaign
 router.delete("/:id", validateObjectId(), campaignController.deleteCampaign);

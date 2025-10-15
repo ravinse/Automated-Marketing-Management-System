@@ -452,3 +452,117 @@ exports.getCampaignsByStatus = async (req, res) => {
     res.status(500).json({ message: "Error fetching campaigns", error: error.message });
   }
 };
+
+// Get overall campaign performance (aggregate all campaigns)
+exports.getOverallPerformance = async (req, res) => {
+  try {
+    const allCampaigns = await Campaign.find({});
+    const completedCampaigns = await Campaign.find({ status: 'completed' });
+    const activeCampaigns = await Campaign.find({ status: 'running' });
+    
+    // Calculate overall metrics
+    const overallMetrics = {
+      totalCampaigns: allCampaigns.length,
+      activeCampaigns: activeCampaigns.length,
+      completedCampaigns: completedCampaigns.length,
+      totalSent: 0,
+      totalDelivered: 0,
+      totalOpened: 0,
+      totalClicked: 0,
+      totalConversions: 0,
+      totalRevenue: 0,
+      avgOpenRate: 0,
+      avgClickRate: 0,
+      avgConversionRate: 0
+    };
+
+    // Sum up metrics from all campaigns
+    allCampaigns.forEach(campaign => {
+      if (campaign.performanceMetrics) {
+        overallMetrics.totalSent += campaign.performanceMetrics.sent || 0;
+        overallMetrics.totalDelivered += campaign.performanceMetrics.delivered || 0;
+        overallMetrics.totalOpened += campaign.performanceMetrics.opened || 0;
+        overallMetrics.totalClicked += campaign.performanceMetrics.clicked || 0;
+        overallMetrics.totalConversions += campaign.performanceMetrics.conversions || 0;
+        overallMetrics.totalRevenue += campaign.performanceMetrics.revenue || 0;
+      }
+    });
+
+    // Calculate average rates
+    if (overallMetrics.totalSent > 0) {
+      overallMetrics.avgOpenRate = ((overallMetrics.totalOpened / overallMetrics.totalSent) * 100).toFixed(2);
+      overallMetrics.avgClickRate = ((overallMetrics.totalClicked / overallMetrics.totalSent) * 100).toFixed(2);
+      overallMetrics.avgConversionRate = ((overallMetrics.totalConversions / overallMetrics.totalSent) * 100).toFixed(2);
+    }
+
+    res.json(overallMetrics);
+  } catch (error) {
+    console.error('Error fetching overall performance:', error);
+    res.status(500).json({ message: "Error fetching overall performance", error: error.message });
+  }
+};
+
+// Get performance for completed campaigns
+exports.getCompletedCampaignsPerformance = async (req, res) => {
+  try {
+    const completedCampaigns = await Campaign.find({ status: 'completed' })
+      .sort({ completedAt: -1 })
+      .select('title status completedAt performanceMetrics startDate endDate')
+      .exec();
+
+    const campaignsWithMetrics = completedCampaigns.map(campaign => {
+      const metrics = campaign.performanceMetrics || {};
+      const sent = metrics.sent || 0;
+      
+      return {
+        _id: campaign._id,
+        title: campaign.title,
+        status: campaign.status,
+        completedAt: campaign.completedAt,
+        startDate: campaign.startDate,
+        endDate: campaign.endDate,
+        sent: sent,
+        delivered: metrics.delivered || 0,
+        opened: metrics.opened || 0,
+        clicked: metrics.clicked || 0,
+        conversions: metrics.conversions || 0,
+        revenue: metrics.revenue || 0,
+        openRate: sent > 0 ? ((metrics.opened || 0) / sent * 100).toFixed(2) : '0.00',
+        clickRate: sent > 0 ? ((metrics.clicked || 0) / sent * 100).toFixed(2) : '0.00',
+        conversionRate: sent > 0 ? ((metrics.conversions || 0) / sent * 100).toFixed(2) : '0.00'
+      };
+    });
+
+    res.json(campaignsWithMetrics);
+  } catch (error) {
+    console.error('Error fetching completed campaigns performance:', error);
+    res.status(500).json({ message: "Error fetching completed campaigns performance", error: error.message });
+  }
+};
+
+// Update campaign performance metrics
+exports.updateCampaignMetrics = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { performanceMetrics } = req.body;
+
+    const campaign = await Campaign.findById(id);
+    if (!campaign) {
+      return res.status(404).json({ message: "Campaign not found" });
+    }
+
+    campaign.performanceMetrics = {
+      ...campaign.performanceMetrics,
+      ...performanceMetrics
+    };
+
+    await campaign.save();
+    res.json({ 
+      message: "Campaign metrics updated successfully", 
+      campaign 
+    });
+  } catch (error) {
+    console.error('Error updating campaign metrics:', error);
+    res.status(500).json({ message: "Error updating campaign metrics", error: error.message });
+  }
+};

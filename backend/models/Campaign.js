@@ -90,6 +90,42 @@ const campaignSchema = new mongoose.Schema({
   },
   completedAt: {
     type: Date
+  },
+  
+  // Performance Metrics
+  performanceMetrics: {
+    sent: {
+      type: Number,
+      default: 0
+    },
+    delivered: {
+      type: Number,
+      default: 0
+    },
+    opened: {
+      type: Number,
+      default: 0
+    },
+    clicked: {
+      type: Number,
+      default: 0
+    },
+    conversions: {
+      type: Number,
+      default: 0
+    },
+    bounced: {
+      type: Number,
+      default: 0
+    },
+    unsubscribed: {
+      type: Number,
+      default: 0
+    },
+    revenue: {
+      type: Number,
+      default: 0
+    }
   }
 }, {
   timestamps: true
