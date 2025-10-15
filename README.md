@@ -18,6 +18,7 @@ A comprehensive full-stack marketing automation platform with intelligent custom
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
+- [Railway Deployment](#railway-deployment) ⭐ **NEW**
 - [Project Structure](#project-structure)
 - [API Documentation](#api-documentation)
 - [Workflow](#workflow)
@@ -519,6 +520,64 @@ python data_cleaning.py
 # Output: Customer segments exported to JSON
 # Automatically integrated with backend API
 ```
+
+---
+
+## 🚂 Railway Deployment
+
+### Quick Start
+
+Deploy your application to Railway without crashes! We've optimized the backend to work perfectly with Railway's infrastructure.
+
+**📚 Comprehensive Guides:**
+- **[RAILWAY_FIX_SUMMARY.md](RAILWAY_FIX_SUMMARY.md)** - Overview of the deployment solution
+- **[RAILWAY_CHECKLIST.md](RAILWAY_CHECKLIST.md)** - Step-by-step deployment checklist
+- **[RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md)** - Detailed deployment guide
+- **[RAILWAY_ARCHITECTURE.md](RAILWAY_ARCHITECTURE.md)** - Architecture diagrams and explanations
+- **[RAILWAY_QUICK_START.md](RAILWAY_QUICK_START.md)** - Quick reference
+
+### The Problem (Fixed!)
+
+The backend was crashing on Railway due to internal schedulers running every minute. This has been **completely fixed** by using Railway's Cron Jobs instead.
+
+### Key Changes
+
+✅ **Environment Variable Control** - `ENABLE_SCHEDULERS` to control internal schedulers  
+✅ **Cron API Endpoints** - New `/api/cron/*` endpoints for scheduled tasks  
+✅ **Railway Cron Jobs** - External scheduling instead of internal timers  
+✅ **Improved Stability** - No more crashes from background processes  
+✅ **Better Resource Usage** - Optimized for Railway's platform  
+
+### Quick Deploy Steps
+
+1. **Set environment variables in Railway:**
+   ```env
+   ENABLE_SCHEDULERS=false
+   CRON_SECRET=your_secure_random_string
+   # ... other required variables
+   ```
+
+2. **Deploy backend service** (will be stable now!)
+
+3. **Set up Railway Cron Job** to call:
+   ```
+   GET https://your-backend.railway.app/api/cron/all?secret=YOUR_CRON_SECRET
+   ```
+   Every 5 minutes: `*/5 * * * *`
+
+4. **Done!** Your application will run stably without crashes.
+
+### Testing
+
+```bash
+# Test cron endpoint
+curl "https://your-backend.railway.app/api/cron/health"
+
+# Trigger scheduled tasks manually
+curl "https://your-backend.railway.app/api/cron/all?secret=YOUR_SECRET"
+```
+
+**Need detailed instructions?** Check the deployment guides linked above!
 
 ---
 
