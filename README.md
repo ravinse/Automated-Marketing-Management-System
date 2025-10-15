@@ -11,11 +11,13 @@ A comprehensive full-stack application for managing marketing campaigns with rol
 
 ### Core Functionality
 - **Campaign Management**: Create, review, approve, and track marketing campaigns
+- **Campaign Execution**: 🆕 Automatically send emails and SMS to filtered customers
 - **Customer Segmentation**: ML-powered customer segmentation using RFM (Recency, Frequency, Monetary) analysis
 - **Template System**: Reusable campaign templates for efficient workflow
 - **Feedback System**: Collect and analyze campaign performance feedback
 - **Automated Scheduling**: Auto-complete expired campaigns with built-in scheduler
 - **Performance Dashboards**: Real-time analytics and KPI tracking
+- **Email & SMS Integration**: 🆕 Send personalized emails and SMS to targeted customer segments
 
 ## 🛠️ Tech Stack
 
@@ -37,7 +39,8 @@ A comprehensive full-stack application for managing marketing campaigns with rol
 - **JWT** - Authentication tokens
 - **bcryptjs** - Password hashing
 - **Multer** - File upload handling
-- **Nodemailer** - Email notifications
+- **Nodemailer** - Email service for campaigns
+- **Twilio** - SMS service (optional)
 
 ### Machine Learning
 - **Python 3** - ML runtime
@@ -68,14 +71,12 @@ cd backend
 # Install dependencies
 npm install
 
-# Create .env file
-cat > .env << EOF
-PORT=3000
-MONGO_URI=mongodb://localhost:27017/marketing-system
-JWT_SECRET=your_jwt_secret_key_here
-EMAIL_USER=your_email@example.com
-EMAIL_PASS=your_email_password
-EOF
+# Create .env file (or copy from .env.example)
+cp .env.example .env
+# Edit .env and configure:
+# - MongoDB connection
+# - Email service for campaign execution
+# - SMS service (optional, for SMS campaigns)
 
 # Seed database (optional)
 node seedUser.js
@@ -158,8 +159,9 @@ Automated-Marketing-Management-System/
 - `GET /api/campaigns/:id` - Get campaign by ID
 - `PUT /api/campaigns/:id` - Update campaign
 - `DELETE /api/campaigns/:id` - Delete campaign
-- `PUT /api/campaigns/:id/approve` - Approve campaign
-- `PUT /api/campaigns/:id/reject` - Reject campaign
+- `PATCH /api/campaigns/approve/:id` - Approve campaign
+- `PATCH /api/campaigns/reject/:id` - Reject campaign
+- `POST /api/campaigns/execute/:id` - 🆕 Execute campaign (send emails/SMS)
 
 ### Customers
 - `GET /api/customers` - Get all customers
@@ -199,9 +201,24 @@ After seeding the database, you can login with:
 2. **Marketing Manager** reviews and either approves or requests resubmission with notes
 3. If rejected, **Team Member** sees manager's feedback and can edit & resubmit
 4. **Manager** can approve campaigns to go live
-5. Campaigns automatically complete when end date is reached
-6. **Owner** monitors overall performance and strategic metrics
-7. All stakeholders can submit feedback on campaign performance
+5. 🆕 **Execute Campaign** - Automatically send emails and SMS to filtered customers
+6. Campaigns automatically complete when end date is reached
+7. **Owner** monitors overall performance and strategic metrics
+8. All stakeholders can submit feedback on campaign performance
+
+## 📧 Campaign Execution
+
+The system now supports automatic email and SMS sending to targeted customers! 
+
+**Quick Start:**
+1. Configure email settings in `.env` (required for email campaigns)
+2. Optionally configure Twilio for SMS campaigns
+3. Create a campaign with target customers and content
+4. Execute the campaign to send emails/SMS automatically
+
+For detailed setup instructions, see:
+- **[Campaign Execution Quick Start](./CAMPAIGN_EXECUTION_README.md)** - Get started quickly
+- **[Campaign Execution Guide](./CAMPAIGN_EXECUTION_GUIDE.md)** - Comprehensive documentation
 
 ## 🤖 Machine Learning Features
 
@@ -242,13 +259,34 @@ npm start
 
 ### Backend (.env)
 ```env
-PORT=3000
-MONGO_URI=mongodb://localhost:27017/marketing-system
-JWT_SECRET=your_secret_key
-EMAIL_USER=your_email@example.com
-EMAIL_PASS=your_email_password
+# Server
+PORT=5001
 NODE_ENV=development
+
+# Database
+MONGO_URI=mongodb://localhost:27017/marketing-system
+
+# Authentication
+JWT_SECRET=your_secret_key
+
+# Email Service (for campaign execution)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+EMAIL_FROM=your-email@gmail.com
+EMAIL_FROM_NAME=Marketing Management System
+
+# SMS Service (optional, for SMS campaigns)
+# TWILIO_ACCOUNT_SID=your_account_sid
+# TWILIO_AUTH_TOKEN=your_auth_token
+# TWILIO_PHONE_NUMBER=+1234567890
+
+# Frontend
+FRONTEND_URL=http://localhost:5174
 ```
+
+See `.env.example` for a complete template.
 
 ## 🤝 Contributing
 

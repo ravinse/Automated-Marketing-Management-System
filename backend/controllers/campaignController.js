@@ -1,4 +1,7 @@
 const Campaign = require("../models/Campaign");
+const Customer = require("../models/Customer");
+const { sendBatchEmails } = require("../utils/emailService");
+const { sendBatchSMS } = require("../utils/smsService");
 
 // Get all campaigns
 exports.getCampaigns = async (req, res) => {
@@ -572,5 +575,166 @@ exports.updateCampaignMetrics = async (req, res) => {
   } catch (error) {
     console.error('Error updating campaign metrics:', error);
     res.status(500).json({ message: "Error updating campaign metrics", error: error.message });
+  }
+};
+
+// Execute campaign - send emails and SMS to targeted customers
+exports.executeCampaign = async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) {
+      return res.status(404).json({ message: "Campaign not found" });
+    }
+
+    // Validate campaign status
+    if (campaign.status !== 'running' && campaign.status !== 'approved') {
+      return res.status(400).json({ 
+        message: "Only running or approved campaigns can be executed",
+        currentStatus: campaign.status
+      });
+    }
+
+    // Validate campaign has required content
+    if (!campaign.emailSubject && !campaign.smsContent) {
+      return res.status(400).json({ 
+        message: "Campaign must have either email subject/content or SMS content to execute" 
+      });
+    }
+
+    // Get targeted customers
+    let customers = [];
+    
+    if (campaign.targetedCustomerIds && campaign.targetedCustomerIds.length > 0) {
+      // Get customers by IDs
+      customers = await Customer.find({
+        _id: { $in: campaign.targetedCustomerIds }
+      });
+    } else if (campaign.customerSegments && campaign.customerSegments.length > 0) {
+      // Get customers by segments
+      customers = await Customer.find({
+        segment: { $in: campaign.customerSegments }
+      });
+    } else {
+      return res.status(400).json({ 
+        message: "Campaign has no targeted customers" 
+      });
+    }
+
+    if (customers.length === 0) {
+      return res.status(400).json({ 
+        message: "No customers found for this campaign" 
+      });
+    }
+
+    // Initialize execution results
+    const executionResults = {
+      totalCustomers: customers.length,
+      emailResults: null,
+      smsResults: null,
+      startedAt: new Date(),
+    };
+
+    // Send emails if email content is provided
+    if (campaign.emailSubject && campaign.emailContent) {
+      console.log(`Sending emails to ${customers.length} customers...`);
+      
+      const emailRecipients = customers
+        .filter(customer => customer.email) // Only customers with email
+        .map(customer => ({
+          email: customer.email,
+          subject: campaign.emailSubject,
+          content: campaign.emailContent,
+        }));
+
+      if (emailRecipients.length > 0) {
+        executionResults.emailResults = await sendBatchEmails(
+          emailRecipients,
+          campaign.emailSubject,
+          campaign.emailContent
+        );
+        
+        console.log(`Emails sent: ${executionResults.emailResults.sent}/${executionResults.emailResults.total}`);
+      } else {
+        console.log('No customers with email addresses found');
+        executionResults.emailResults = {
+          total: 0,
+          sent: 0,
+          failed: 0,
+          details: [],
+        };
+      }
+    }
+
+    // Send SMS if SMS content is provided
+    if (campaign.smsContent) {
+      console.log(`Sending SMS to ${customers.length} customers...`);
+      
+      const smsRecipients = customers
+        .filter(customer => customer.phone) // Only customers with phone numbers
+        .map(customer => ({
+          phone: customer.phone,
+          message: campaign.smsContent,
+        }));
+
+      if (smsRecipients.length > 0) {
+        executionResults.smsResults = await sendBatchSMS(
+          smsRecipients,
+          campaign.smsContent
+        );
+        
+        console.log(`SMS sent: ${executionResults.smsResults.sent}/${executionResults.smsResults.total}`);
+      } else {
+        console.log('No customers with phone numbers found');
+        executionResults.smsResults = {
+          total: 0,
+          sent: 0,
+          failed: 0,
+          details: [],
+        };
+      }
+    }
+
+    executionResults.completedAt = new Date();
+
+    // Update campaign performance metrics
+    const emailsSent = executionResults.emailResults ? executionResults.emailResults.sent : 0;
+    const smsSent = executionResults.smsResults ? executionResults.smsResults.sent : 0;
+    const totalSent = emailsSent + smsSent;
+
+    campaign.performanceMetrics = {
+      ...campaign.performanceMetrics,
+      sent: (campaign.performanceMetrics.sent || 0) + totalSent,
+      delivered: (campaign.performanceMetrics.delivered || 0) + totalSent, // Assuming delivered for now
+    };
+
+    // Update campaign status to running if it was approved
+    if (campaign.status === 'approved') {
+      campaign.status = 'running';
+    }
+
+    await campaign.save();
+
+    res.json({ 
+      message: "Campaign executed successfully",
+      campaign,
+      executionResults: {
+        totalCustomers: executionResults.totalCustomers,
+        emails: executionResults.emailResults ? {
+          sent: executionResults.emailResults.sent,
+          failed: executionResults.emailResults.failed,
+          total: executionResults.emailResults.total,
+        } : null,
+        sms: executionResults.smsResults ? {
+          sent: executionResults.smsResults.sent,
+          failed: executionResults.smsResults.failed,
+          total: executionResults.smsResults.total,
+        } : null,
+        startedAt: executionResults.startedAt,
+        completedAt: executionResults.completedAt,
+      }
+    });
+  } catch (error) {
+    console.error('Error executing campaign:', error);
+    res.status(500).json({ message: "Error executing campaign", error: error.message });
   }
 };

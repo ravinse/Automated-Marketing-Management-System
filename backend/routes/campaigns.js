@@ -33,6 +33,9 @@ router.patch("/start/:id", validateObjectId(), campaignController.startCampaign)
 // Complete campaign manually - using action in path
 router.patch("/complete/:id", validateObjectId(), campaignController.completeCampaign);
 
+// Execute campaign - send emails and SMS to targeted customers
+router.post("/execute/:id", validateObjectId(), campaignController.executeCampaign);
+
 // Check and complete expired campaigns (can be called manually or by scheduler)
 router.post("/check-expired", campaignController.checkAndCompleteExpiredCampaigns);
 
