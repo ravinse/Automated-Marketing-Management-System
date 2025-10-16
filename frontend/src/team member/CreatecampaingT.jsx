@@ -142,7 +142,6 @@ function CampaignCreation() {
   // File validation constants and helper
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
   const VALID_EXT_REGEX = /\.(pdf|docx|jpg|jpeg|png)$/i;
-
   const validateAndFilterFiles = (fileList) => {
     const validFiles = [];
     const errors = [];
@@ -167,6 +166,27 @@ function CampaignCreation() {
     });
 
     return { validFiles, errors };
+  };
+
+  // Centralized handler to validate and add files (used by input change and drag/drop)
+  const handleFiles = (fileList) => {
+    if (!fileList || fileList.length === 0) return;
+
+    const { validFiles, errors } = validateAndFilterFiles(fileList);
+
+    if (validFiles.length > 0) {
+      setFormData(prevState => ({
+        ...prevState,
+        attachments: [...prevState.attachments, ...validFiles]
+      }));
+    }
+
+    if (errors.length > 0) {
+      setFileErrors(errors);
+      setTimeout(() => setFileErrors([]), 6000);
+    } else {
+      setFileErrors([]);
+    }
   };
 
   const [showEmailPreview, setShowEmailPreview] = useState(false);
@@ -269,24 +289,7 @@ function CampaignCreation() {
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === 'attachments') {
-      if (files && files.length > 0) {
-        const { validFiles, errors } = validateAndFilterFiles(files);
-
-        if (validFiles.length > 0) {
-          setFormData(prevState => ({
-            ...prevState,
-            attachments: [...prevState.attachments, ...validFiles]
-          }));
-        }
-
-        if (errors.length > 0) {
-          setFileErrors(errors);
-          // clear errors after a short delay so they don't persist forever
-          setTimeout(() => setFileErrors([]), 6000);
-        } else {
-          setFileErrors([]);
-        }
-      }
+      handleFiles(files);
     } else {
       setFormData(prevState => ({
         ...prevState,
@@ -350,24 +353,7 @@ function CampaignCreation() {
   };
 
   const handleFileUpload = (e) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const { validFiles, errors } = validateAndFilterFiles(files);
-
-      if (validFiles.length > 0) {
-        setFormData(prevState => ({
-          ...prevState,
-          attachments: [...prevState.attachments, ...validFiles]
-        }));
-      }
-
-      if (errors.length > 0) {
-        setFileErrors(errors);
-        setTimeout(() => setFileErrors([]), 6000);
-      } else {
-        setFileErrors([]);
-      }
-    }
+    handleFiles(e.target.files);
   };
 
   const removeAttachment = (index) => {
@@ -380,23 +366,7 @@ function CampaignCreation() {
   const handleDrop = (e) => {
     e.preventDefault();
     const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      const { validFiles, errors } = validateAndFilterFiles(files);
-
-      if (validFiles.length > 0) {
-        setFormData(prevState => ({
-          ...prevState,
-          attachments: [...prevState.attachments, ...validFiles]
-        }));
-      }
-
-      if (errors.length > 0) {
-        setFileErrors(errors);
-        setTimeout(() => setFileErrors([]), 6000);
-      } else {
-        setFileErrors([]);
-      }
-    }
+    handleFiles(files);
   };
 
   const handleDragOver = (e) => {
