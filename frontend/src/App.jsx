@@ -19,7 +19,7 @@ import Performance_dashboardm from './Marketingmanager/Perfomance_dashboardm';
 import Feedback1 from './Marketingmanager/Feedback1';
 import Templete from './Marketingmanager/Templete';
 import AdminDashboard from './admin/AdminDashboard';
-import CreatecampaingM from './Marketingmanager/CreatecampaingM';
+import CreatecampaingM from './Marketingmanager/createcampaingM';
 
 import PendingApproval from './Tables/PendingApproval';
 
@@ -27,7 +27,7 @@ import PendingApproval from './Tables/PendingApproval';
 import Home from './team member/Home';
 import FeedbackT from "./team member/FeedbackT";
 import TemplateT from "./team member/TemplateT";
-import CreatecampaingT from "./team member/CreatecampaingT";
+import CreatecampaingT from "./team member/createcampaingT";
 import Campaingreviewt from "./team member/campaingreviewt";
 
 // Settings

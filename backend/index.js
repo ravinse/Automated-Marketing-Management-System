@@ -8,29 +8,9 @@ const { startSegmentationScheduler } = require("./utils/segmentationScheduler");
 const app = express();
 
 // Middleware
-// CORS configuration - allow Railway and local development
-const allowedOrigins = [
-  "http://localhost:5173", 
-  "http://localhost:5174", 
-  "http://localhost:5175", 
-  "http://localhost:5176", 
-  "http://localhost:5177", 
-  "http://localhost:5178", 
-  "http://localhost:5179", 
-  "http://localhost:5180"
-];
-
-// Add Railway frontend URL if provided
-if (process.env.FRONTEND_URL) {
-  allowedOrigins.push(process.env.FRONTEND_URL);
-}
-
 app.use(cors({ 
-  origin: process.env.NODE_ENV === 'production' 
-    ? allowedOrigins 
-    : '*', // Allow all origins in development
-  credentials: true
-}));
+  origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176", "http://localhost:5177", "http://localhost:5178", "http://localhost:5179", "http://localhost:5180"]
+})); // frontend port
 app.use(express.json());
 // Serve uploaded files
 const path = require('path');
@@ -83,40 +63,6 @@ app.get("/", (req, res) => {
   res.send("Backend API is running...");
 });
 
-app.get("/health", (req, res) => {
-  res.json({ 
-    status: "ok", 
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    schedulers: ENABLE_SCHEDULERS ? "enabled" : "disabled"
-  });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).json({ error: 'Internal server error', message: err.message });
-});
-
 // Start server
 const PORT = process.env.PORT || 5001;
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔄 Schedulers: ${ENABLE_SCHEDULERS ? 'enabled' : 'disabled'}`);
-});
-
-// Handle server errors
-server.on('error', (error) => {
-  console.error('❌ Server error:', error);
-  process.exit(1);
-});
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('👋 SIGTERM received, closing server gracefully');
-  server.close(() => {
-    console.log('✅ Server closed');
-    process.exit(0);
-  });
-});
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
