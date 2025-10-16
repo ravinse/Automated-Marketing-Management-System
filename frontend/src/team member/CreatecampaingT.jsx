@@ -17,6 +17,23 @@ const getCurrentTime = () => {
   return now.toTimeString().slice(0, 5);
 };
 
+// Helper function to get minimum time based on selected date
+const getMinTime = (selectedDate) => {
+  const today = getTodayDate();
+  if (selectedDate === today) {
+    return getCurrentTime();
+  }
+  return '00:00';
+};
+
+// Helper function to validate if datetime is in the future
+const isDateTimeFuture = (date, time) => {
+  if (!date || !time) return false;
+  const selectedDateTime = new Date(`${date}T${time}`);
+  const now = new Date();
+  return selectedDateTime > now;
+};
+
 function CampaignCreation() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -962,14 +979,25 @@ function CampaignCreation() {
                   id="startDate"
                   name="startDate"
                   value={formData.startDate}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    handleChange(e);
+                    // If selecting today, validate time
+                    if (e.target.value === getTodayDate() && formData.startTime) {
+                      const minTime = getCurrentTime();
+                      if (formData.startTime < minTime) {
+                        setFormData(prev => ({ ...prev, startTime: minTime }));
+                      }
+                    }
+                    // Reset end date if it's before new start date
+                    if (formData.endDate && e.target.value > formData.endDate) {
+                      setFormData(prev => ({ ...prev, endDate: e.target.value }));
+                    }
+                  }}
                   required
                   min={getTodayDate()}
                   onFocus={() => {
                     if (currentStep === 'basic') {
                       setCurrentStep('targeting');
-                      // Auto-save disabled
-                      // autoSaveCampaign(formData);
                     }
                   }}
                   className="w-full p-2 border border-gray-300 rounded"
@@ -979,12 +1007,28 @@ function CampaignCreation() {
                   id="startTime"
                   name="startTime"
                   value={formData.startTime}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const newTime = e.target.value;
+                    // If today is selected, don't allow past times
+                    if (formData.startDate === getTodayDate()) {
+                      const minTime = getCurrentTime();
+                      if (newTime < minTime) {
+                        alert('Please select a time from now onwards');
+                        return;
+                      }
+                    }
+                    handleChange(e);
+                  }}
                   required
+                  min={formData.startDate === getTodayDate() ? getCurrentTime() : '00:00'}
                   className="w-full p-2 border border-gray-300 rounded"
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">Select a date and time from now onwards</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.startDate === getTodayDate() 
+                  ? 'Must be a future time (current time or later)' 
+                  : 'Select a date and time from now onwards'}
+              </p>
             </div>
             <div>
               <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
@@ -996,7 +1040,21 @@ function CampaignCreation() {
                   id="endDate"
                   name="endDate"
                   value={formData.endDate}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const newEndDate = e.target.value;
+                    // Validate that end date is not before start date
+                    if (formData.startDate && newEndDate < formData.startDate) {
+                      alert('End date cannot be before start date');
+                      return;
+                    }
+                    handleChange(e);
+                    // If same day as start date, validate end time
+                    if (newEndDate === formData.startDate && formData.endTime && formData.startTime) {
+                      if (formData.endTime <= formData.startTime) {
+                        setFormData(prev => ({ ...prev, endTime: '' }));
+                      }
+                    }
+                  }}
                   required
                   min={formData.startDate || getTodayDate()}
                   className="w-full p-2 border border-gray-300 rounded"
@@ -1006,12 +1064,41 @@ function CampaignCreation() {
                   id="endTime"
                   name="endTime"
                   value={formData.endTime}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const newEndTime = e.target.value;
+                    // If same day as start date, end time must be after start time
+                    if (formData.endDate === formData.startDate && formData.startTime) {
+                      if (newEndTime <= formData.startTime) {
+                        alert('End time must be after start time');
+                        return;
+                      }
+                    }
+                    // If end date is today, don't allow past times
+                    if (formData.endDate === getTodayDate()) {
+                      const minTime = getCurrentTime();
+                      if (newEndTime < minTime) {
+                        alert('Please select a future time');
+                        return;
+                      }
+                    }
+                    handleChange(e);
+                  }}
                   required
+                  min={
+                    formData.endDate === formData.startDate && formData.startTime
+                      ? formData.startTime
+                      : formData.endDate === getTodayDate()
+                      ? getCurrentTime()
+                      : '00:00'
+                  }
                   className="w-full p-2 border border-gray-300 rounded"
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">Must be after the start date and time</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.endDate === formData.startDate 
+                  ? 'Must be after start time' 
+                  : 'Must be after the start date and time'}
+              </p>
             </div>
           </div>
 

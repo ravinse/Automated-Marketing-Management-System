@@ -195,11 +195,33 @@ async function syncNewCustomers() {
       console.log(`   ✅ ${customerId}: ${purchaseFrequency} | ${spending} | ${category}`);
     }
 
-    // Insert all new segmentation documents
+    // Insert all new segmentation documents with duplicate handling
+    let insertedCount = 0;
+    let duplicateCount = 0;
+    
     if (segmentationDocuments.length > 0) {
       console.log(`\n📋 Step 5: Inserting ${segmentationDocuments.length} new segmentation records...`);
-      const result = await segmentationCollection.insertMany(segmentationDocuments, { ordered: false });
-      console.log(`   ✅ Successfully inserted ${result.insertedCount} records\n`);
+      
+      try {
+        // Use insertMany with ordered: false to continue on duplicates
+        const result = await segmentationCollection.insertMany(segmentationDocuments, { ordered: false });
+        insertedCount = result.insertedCount;
+        console.log(`   ✅ Successfully inserted ${insertedCount} records`);
+      } catch (error) {
+        // Handle duplicate key errors gracefully
+        if (error.code === 11000) {
+          // Extract number of successful insertions from bulk write error
+          insertedCount = error.result?.insertedCount || 0;
+          duplicateCount = segmentationDocuments.length - insertedCount;
+          
+          console.log(`   ✅ Successfully inserted ${insertedCount} records`);
+          console.log(`   ⚠️  Skipped ${duplicateCount} duplicate(s) (already exists)`);
+        } else {
+          // Re-throw if it's not a duplicate key error
+          throw error;
+        }
+      }
+      console.log();
     }
 
     // Summary
@@ -208,15 +230,20 @@ async function syncNewCustomers() {
     console.log('═══════════════════════════════════════════════════════');
     console.log(`Total customers in orders:        ${allCustomerIds.length}`);
     console.log(`Previously segmented:             ${existingCustomerIds.length}`);
-    console.log(`Newly segmented:                  ${segmentationDocuments.length}`);
-    console.log(`Now fully synced:                 ${existingCustomerIds.length + segmentationDocuments.length}`);
+    console.log(`Newly processed:                  ${segmentationDocuments.length}`);
+    console.log(`Successfully inserted:            ${insertedCount}`);
+    if (duplicateCount > 0) {
+      console.log(`Duplicates skipped:               ${duplicateCount}`);
+    }
+    console.log(`Now fully synced:                 ${existingCustomerIds.length + insertedCount}`);
     console.log('═══════════════════════════════════════════════════════\n');
     console.log('✅ ML auto-segmentation complete!\n');
 
     return {
-      added: segmentationDocuments.length,
-      skipped: newCustomerIds.length - segmentationDocuments.length,
-      total: allCustomerIds.length
+      added: insertedCount,
+      skipped: (newCustomerIds.length - segmentationDocuments.length) + duplicateCount,
+      total: allCustomerIds.length,
+      duplicates: duplicateCount
     };
 
   } catch (error) {
