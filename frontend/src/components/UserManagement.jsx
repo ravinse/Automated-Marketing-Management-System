@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api';
+import Navbarm from '../Marketingmanager/Navbarm';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -149,15 +150,23 @@ const UserManagement = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
+      <>
+        <Navbarm />
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation Bar */}
+      <Navbarm />
+      
+      {/* Main Content */}
+      <div className="py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex justify-between items-center">
@@ -420,6 +429,7 @@ const UserManagement = () => {
               <p className="mt-1 text-sm text-gray-500">Get started by creating a new user.</p>
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>

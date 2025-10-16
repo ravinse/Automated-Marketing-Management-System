@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
-const Approved = () => {
+const Approved = ({ isViewOnly = false }) => {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -219,12 +219,14 @@ const Approved = () => {
                     </td>
                     <td className="p-4 border-b border-slate-200">
                       <div className="flex gap-2">
-                        <button 
-                          onClick={() => handleStartCampaign(campaign._id)}
-                          className="px-4 py-2 rounded-full bg-[#00af96] text-white font-normal hover:bg-[#009580] transition-colors text-sm"
-                        >
-                          Execute
-                        </button>
+                        {!isViewOnly && (
+                          <button 
+                            onClick={() => handleStartCampaign(campaign._id)}
+                            className="px-4 py-2 rounded-full bg-[#00af96] text-white font-normal hover:bg-[#009580] transition-colors text-sm"
+                          >
+                            Execute
+                          </button>
+                        )}
                         <Link 
                           to={`/campaignreview?campaignId=${campaign._id}`}
                           className="px-4 py-2 rounded-full bg-gray-100 text-gray-800 font-normal hover:bg-gray-200 transition-colors inline-block text-center text-sm"

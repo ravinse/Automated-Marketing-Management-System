@@ -99,16 +99,23 @@ const Navbarm = () => {
       <div className="ml-10">
         <nav className="flex sm:justify-center space-x-4">
           {(() => {
-            const items = [
-              ['Dashboard', '/performance'],
-              ['Campaigns', '/Campaign'],
-              ['Templates', '/Template'],
-              ['Performance', '/performanceoverview'],
-              ['Feedback', '/Feedback'],
-            ];
+            let items;
             if ((userRole || '').toLowerCase() === 'admin') {
-              // Add User Management for admins
-              items.splice(1, 0, ['User Management', '/user-management']);
+              // Admin only gets Dashboard, User Management, and Campaigns (view only)
+              items = [
+                ['Dashboard', '/ahome'],
+                ['User Management', '/user-management'],
+                ['Campaigns', '/Campaign'],
+              ];
+            } else {
+              // Other roles get full access
+              items = [
+                ['Dashboard', '/performance'],
+                ['Campaigns', '/Campaign'],
+                ['Templates', '/Template'],
+                ['Performance', '/performanceoverview'],
+                ['Feedback', '/Feedback'],
+              ];
             }
             return items;
           })().map(([title, url]) => (

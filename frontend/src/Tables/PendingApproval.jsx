@@ -4,7 +4,7 @@ import { Button } from "@material-tailwind/react";
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
-const PendingApproval = () => {
+const PendingApproval = ({ isViewOnly = false }) => {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -151,12 +151,14 @@ const PendingApproval = () => {
                     </p>
                   </td>
                   <td className="flex gap-4 p-4 border-b border-slate-200">
-                    <button 
-                      onClick={() => handleApprove(campaign._id)}
-                      className="px-5 py-2 rounded-full bg-green-100 text-green-800 font-normal hover:bg-green-200 transition"
-                    >
-                      Approve
-                    </button>
+                    {!isViewOnly && (
+                      <button 
+                        onClick={() => handleApprove(campaign._id)}
+                        className="px-5 py-2 rounded-full bg-green-100 text-green-800 font-normal hover:bg-green-200 transition"
+                      >
+                        Approve
+                      </button>
+                    )}
                     <Link 
                       to={`/campaignreview?campaignId=${campaign._id}`}
                       className="px-5 py-2 rounded-full bg-gray-100 text-gray-800 font-normal hover:bg-gray-200 transition inline-block text-center"

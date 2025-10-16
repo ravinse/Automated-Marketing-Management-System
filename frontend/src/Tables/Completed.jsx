@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const Completed = () => {
+const Completed = ({ isViewOnly = false }) => {
   const [completedCampaigns, setCompletedCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -158,12 +158,19 @@ const Completed = () => {
                   </td>
                   <td className="p-3 md:p-4 border-b border-slate-200">
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => handleDelete(campaign._id)}
-                        className="text-xs md:text-sm text-red-600 hover:text-red-800 font-medium"
-                      >
-                        Delete
-                      </button>
+                      {!isViewOnly && (
+                        <button
+                          onClick={() => handleDelete(campaign._id)}
+                          className="text-xs md:text-sm text-red-600 hover:text-red-800 font-medium"
+                        >
+                          Delete
+                        </button>
+                      )}
+                      {isViewOnly && (
+                        <span className="text-xs md:text-sm text-gray-400">
+                          View Only
+                        </span>
+                      )}
                     </div>
                   </td>
                 </tr>

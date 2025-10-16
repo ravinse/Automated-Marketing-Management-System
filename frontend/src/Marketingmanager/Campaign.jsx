@@ -1,15 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PendingApproval from '../Tables/PendingApproval.jsx';
 import Approved from '../Tables/Approved.jsx';
 import Running from '../Tables/Running.jsx'
 import Completed from '../Tables/Completed.jsx';
 import { Link } from 'react-router-dom';
 import Navbarm from './Navbarm.jsx';
+import API from '../api';
 
 
 const Campaign = () => {
   const [activeTab, setActiveTab] = useState('Pending Approval');
+  const [userRole, setUserRole] = useState('');
   const tabs = ['Pending Approval', 'Approved', 'Running', 'Completed'];
+
+  // Fetch user role
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        const response = await API.get('/auth/profile');
+        setUserRole(response.data.role);
+      } catch (error) {
+        console.error('Failed to fetch user role:', error);
+        // Fallback to localStorage
+        const role = localStorage.getItem('userRole') || '';
+        setUserRole(role);
+      }
+    };
+
+    fetchUserRole();
+  }, []);
+
+  const isAdmin = (userRole || '').toLowerCase() === 'admin';
+
   return (
     <>
       <div>
@@ -21,12 +43,19 @@ const Campaign = () => {
         {/* Header Section */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Campaigns</h1>
-            <Link to="/createcampaingm">
-              <button className="bg-[#F2F2F5] text-black px-6 py-2.5 rounded-full hover:bg-[#E0E0E5] transition-colors font-medium shadow-sm w-full sm:w-auto">
-                Create Campaign
-              </button>
-            </Link>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Campaigns</h1>
+              {isAdmin && (
+                <p className="text-sm text-gray-500 mt-1">View-only access</p>
+              )}
+            </div>
+            {!isAdmin && (
+              <Link to="/createcampaingm">
+                <button className="bg-[#F2F2F5] text-black px-6 py-2.5 rounded-full hover:bg-[#E0E0E5] transition-colors font-medium shadow-sm w-full sm:w-auto">
+                  Create Campaign
+                </button>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -53,10 +82,10 @@ const Campaign = () => {
 
         {/* Content Section */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {activeTab === 'Pending Approval' && <PendingApproval />}
-          {activeTab === 'Approved' && <Approved />}
-          {activeTab === 'Running' && <Running />}
-          {activeTab === 'Completed' && <Completed />}
+          {activeTab === 'Pending Approval' && <PendingApproval isViewOnly={isAdmin} />}
+          {activeTab === 'Approved' && <Approved isViewOnly={isAdmin} />}
+          {activeTab === 'Running' && <Running isViewOnly={isAdmin} />}
+          {activeTab === 'Completed' && <Completed isViewOnly={isAdmin} />}
         </div>
       </div>
     </>
