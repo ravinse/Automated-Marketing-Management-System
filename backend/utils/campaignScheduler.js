@@ -2,29 +2,59 @@ const Campaign = require('../models/Campaign');
 const Customer = require('../models/Customer');
 const { sendBatchEmails } = require('./emailService');
 const { sendBatchSMS } = require('./smsService');
+const { MongoClient } = require('mongodb');
 
 /**
  * Execute campaign - send emails/SMS to targeted customers
  */
 const executeCampaignAutomatically = async (campaign) => {
+  let mongoClient;
   try {
     console.log(`🚀 Auto-executing campaign: ${campaign.title} (ID: ${campaign._id})`);
 
-    // Get targeted customers
+    // Get targeted customers from segmentation database
     let customers = [];
     
+    // Connect to segmentation database
+    const MONGODB_URI = process.env.MONGO_URI || process.env.MONGODB_URI;
+    const DATABASE_NAME = process.env.SEGMENTATION_DB || 'retail_db';
+    const ORDERS_COLLECTION = process.env.ORDERS_COLLECTION || 'newdatabase';
+    
+    mongoClient = new MongoClient(MONGODB_URI);
+    await mongoClient.connect();
+    const db = mongoClient.db(DATABASE_NAME);
+    const ordersCollection = db.collection(ORDERS_COLLECTION);
+    
     if (campaign.targetedCustomerIds && campaign.targetedCustomerIds.length > 0) {
-      customers = await Customer.find({
-        _id: { $in: campaign.targetedCustomerIds }
-      });
-    } else if (campaign.customerSegments && campaign.customerSegments.length > 0) {
-      customers = await Customer.find({
-        segment: { $in: campaign.customerSegments }
-      });
+      console.log(`📋 Fetching ${campaign.targetedCustomerIds.length} targeted customers by IDs`);
+      
+      const customerData = await ordersCollection.aggregate([
+        {
+          $match: { customer_id: { $in: campaign.targetedCustomerIds } }
+        },
+        {
+          $group: {
+            _id: "$customer_id",
+            customer_name: { $first: "$customer_name" },
+            email: { $first: "$email" },
+            phone_number: { $first: "$phone_number" }
+          }
+        }
+      ]).toArray();
+      
+      console.log(`   Found ${customerData.length} customers in orders collection`);
+      
+      customers = customerData.map(c => ({
+        _id: c._id,
+        name: c.customer_name,
+        email: c.email,
+        phone: c.phone_number
+      }));
     }
 
     if (customers.length === 0) {
       console.log(`⚠️ No customers found for campaign: ${campaign.title}`);
+      if (mongoClient) await mongoClient.close();
       return { success: false, reason: 'No customers found' };
     }
 
@@ -73,6 +103,9 @@ const executeCampaignAutomatically = async (campaign) => {
       }
     }
 
+    // Close MongoDB connection
+    if (mongoClient) await mongoClient.close();
+
     // Update campaign performance metrics
     const totalSent = emailsSent + smsSent;
     campaign.performanceMetrics = {
@@ -92,6 +125,13 @@ const executeCampaignAutomatically = async (campaign) => {
     };
   } catch (error) {
     console.error(`✗ Error executing campaign ${campaign.title}:`, error);
+    if (mongoClient) {
+      try {
+        await mongoClient.close();
+      } catch (closeError) {
+        console.error('Error closing MongoDB connection:', closeError);
+      }
+    }
     return { success: false, error: error.message };
   }
 };
@@ -179,16 +219,16 @@ const runScheduledChecks = async () => {
 
 /**
  * Start the campaign scheduler
- * Checks for scheduled and expired campaigns every 5 minutes
+ * Checks for scheduled and expired campaigns every 1 minute
  */
 const startCampaignScheduler = () => {
-  console.log('📅 Campaign scheduler started - checking every 5 minutes');
+  console.log('📅 Campaign scheduler started - checking every 1 minute');
   
   // Run immediately on startup
   runScheduledChecks();
   
-  // Run every 5 minutes (300000 milliseconds)
-  const schedulerInterval = setInterval(runScheduledChecks, 5 * 60 * 1000);
+  // Run every 1 minute (60000 milliseconds) for better accuracy
+  const schedulerInterval = setInterval(runScheduledChecks, 1 * 60 * 1000);
   
   return schedulerInterval;
 };

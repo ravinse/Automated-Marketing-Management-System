@@ -5,6 +5,18 @@ import Navbar from './Navbart';
 // API Configuration
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
+// Helper function to get current date in YYYY-MM-DD format
+const getTodayDate = () => {
+  const today = new Date();
+  return today.toISOString().split('T')[0];
+};
+
+// Helper function to get current time in HH:MM format
+const getCurrentTime = () => {
+  const now = new Date();
+  return now.toTimeString().slice(0, 5);
+};
+
 function CampaignCreation() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -180,7 +192,7 @@ function CampaignCreation() {
     setCustomerPreview(prev => ({ ...prev, loading: true }));
 
     try {
-      const response = await fetch(`${API_URL}/segmentation/filtered-customers`, {
+      const response = await fetch(`${API_URL}/ml/segmentation/filtered-customers`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -392,12 +404,20 @@ function CampaignCreation() {
       return;
     }
 
-    // Validate that end date/time is after start date/time
+    // Validate that start date/time is not in the past
     const startDateTime = new Date(`${formData.startDate}T${formData.startTime || '00:00'}`);
+    const now = new Date();
+    
+    if (startDateTime < now) {
+      alert('Campaign start date and time cannot be in the past. Please select a future date and time.');
+      return;
+    }
+
+    // Validate that end date/time is after start date/time
     const endDateTime = new Date(`${formData.endDate}T${formData.endTime || '00:00'}`);
     
     if (endDateTime <= startDateTime) {
-      alert('End date and time must be after start date and time');
+      alert('Campaign end date and time must be after the start date and time');
       return;
     }
 
@@ -944,6 +964,7 @@ function CampaignCreation() {
                   value={formData.startDate}
                   onChange={handleChange}
                   required
+                  min={getTodayDate()}
                   onFocus={() => {
                     if (currentStep === 'basic') {
                       setCurrentStep('targeting');
@@ -959,9 +980,11 @@ function CampaignCreation() {
                   name="startTime"
                   value={formData.startTime}
                   onChange={handleChange}
+                  required
                   className="w-full p-2 border border-gray-300 rounded"
                 />
               </div>
+              <p className="text-xs text-gray-500 mt-1">Select a date and time from now onwards</p>
             </div>
             <div>
               <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
@@ -975,7 +998,7 @@ function CampaignCreation() {
                   value={formData.endDate}
                   onChange={handleChange}
                   required
-                  min={formData.startDate}
+                  min={formData.startDate || getTodayDate()}
                   className="w-full p-2 border border-gray-300 rounded"
                 />
                 <input
@@ -984,9 +1007,11 @@ function CampaignCreation() {
                   name="endTime"
                   value={formData.endTime}
                   onChange={handleChange}
+                  required
                   className="w-full p-2 border border-gray-300 rounded"
                 />
               </div>
+              <p className="text-xs text-gray-500 mt-1">Must be after the start date and time</p>
             </div>
           </div>
 

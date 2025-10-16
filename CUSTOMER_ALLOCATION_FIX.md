@@ -183,7 +183,7 @@ console.log(`   First 5 IDs: ${campaign.targetedCustomerIds.slice(0, 5).join(', 
 **Cause**: No customers match the selected segments in the database
 **Solution**: 
 - Try different segments
-- Run segmentation sync: `POST /api/segmentation/sync`
+- Run ML segmentation sync: `POST /api/ml/segmentation/sync`
 - Verify customer data exists in MongoDB
 
 ### Issue: Customer IDs not saving

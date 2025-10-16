@@ -3,7 +3,7 @@ const cors = require("cors");
 require("dotenv").config();
 const connectDB = require("./config/db");
 const { startCampaignScheduler } = require("./utils/campaignScheduler");
-const { startSegmentationScheduler } = require("./utils/segmentationScheduler");
+const { startSegmentationScheduler } = require("./ml/segmentationScheduler");
 
 const app = express();
 
@@ -47,7 +47,7 @@ const userRoutes = require("./routes/users");
 const feedbackRoutes = require("./routes/feedback");
 const campaignRoutes = require("./routes/campaigns");
 const templateRoutes = require("./routes/templates");
-const segmentationRoutes = require("./routes/segmentation");
+const mlRoutes = require("./routes/ml");
 const trackingRoutes = require("./routes/tracking");
 
 app.use("/api/auth", authRoutes);
@@ -56,7 +56,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/templates", templateRoutes);
-app.use("/api/segmentation", segmentationRoutes);
+app.use("/api/ml", mlRoutes);
 app.use("/api/tracking", trackingRoutes);
 
 app.get("/", (req, res) => {
