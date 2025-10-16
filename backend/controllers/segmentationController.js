@@ -31,10 +31,18 @@ const SEGMENT_MAPPING = {
 exports.getAvailableSegments = async (req, res) => {
   let client;
   try {
+    console.log('📊 [getAvailableSegments] Request received');
+    console.log('🔌 Connecting to MongoDB Atlas...');
+    
     client = new MongoClient(MONGODB_URI);
     await client.connect();
+    console.log('✅ Connected to MongoDB Atlas');
+    
     const db = client.db(DATABASE_NAME);
     const collection = db.collection(COLLECTION_NAME);
+    
+    console.log(`📂 Using database: ${DATABASE_NAME}`);
+    console.log(`📋 Collection: ${COLLECTION_NAME}`);
 
     // Aggregate to get counts for each segment type
     const pipeline = [
@@ -56,18 +64,27 @@ exports.getAvailableSegments = async (req, res) => {
       }
     ];
 
+    console.log('⏳ Running aggregation pipeline...');
     const result = await collection.aggregate(pipeline).toArray();
+    console.log('✅ Aggregation complete');
+    console.log('📤 Returning segment counts to frontend');
     
     res.json({
       success: true,
       segments: result[0]
     });
   } catch (error) {
-    console.error('Error fetching available segments:', error);
+    console.error('❌ Error fetching available segments:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code
+    });
     res.status(500).json({ 
       success: false,
       message: 'Error fetching available segments', 
-      error: error.message 
+      error: error.message,
+      details: error.code || 'Unknown error'
     });
   } finally {
     if (client) {
@@ -80,9 +97,12 @@ exports.getAvailableSegments = async (req, res) => {
 exports.getFilteredCustomers = async (req, res) => {
   let client;
   try {
+    console.log('📊 [getFilteredCustomers] Request received:', JSON.stringify(req.body, null, 2));
+    
     const { customerSegments, daysPeriod = 14 } = req.body; // Default to 14 days
 
     if (!customerSegments || customerSegments.length === 0) {
+      console.log('⚠️  No segments selected');
       return res.json({
         success: true,
         customers: [],
@@ -91,11 +111,17 @@ exports.getFilteredCustomers = async (req, res) => {
       });
     }
 
+    console.log('🔌 Connecting to MongoDB Atlas...');
     client = new MongoClient(MONGODB_URI);
     await client.connect();
+    console.log('✅ Connected to MongoDB Atlas');
+    
     const db = client.db(DATABASE_NAME);
     const collection = db.collection(COLLECTION_NAME);
     const ordersCollection = db.collection(ORDERS_COLLECTION);
+    
+    console.log(`📂 Using database: ${DATABASE_NAME}`);
+    console.log(`📋 Collections: ${COLLECTION_NAME}, ${ORDERS_COLLECTION}`);
 
     // Build query based on selected segments
     const filters = {};
@@ -151,13 +177,16 @@ exports.getFilteredCustomers = async (req, res) => {
       ? { $and: queryConditions }
       : {};
 
-    console.log('MongoDB Query:', JSON.stringify(query, null, 2));
-    console.log('Date threshold for new customers:', dateThreshold);
+    console.log('🔍 MongoDB Query:', JSON.stringify(query, null, 2));
+    console.log('📅 Date threshold for new customers:', dateThreshold);
 
+    console.log('⏳ Executing query on segmentation collection...');
     customers = await collection.find(query).toArray();
+    console.log(`✅ Found ${customers.length} customers matching segments`);
     
     // Enrich customer data with email and phone from orders collection
     if (customers.length > 0) {
+      console.log('📧 Enriching customer data from orders collection...');
       const customerIds = customers.map(c => c.customer_id);
       const customerOrders = await ordersCollection.aggregate([
         {
@@ -191,8 +220,10 @@ exports.getFilteredCustomers = async (req, res) => {
         last_order_date: orderDataMap[customer.customer_id]?.last_order_date || null,
         total_orders: orderDataMap[customer.customer_id]?.total_orders || 0
       }));
+      console.log(`✅ Customer data enriched successfully`);
     }
 
+    console.log(`📤 Returning ${customers.length} customers to frontend`);
     res.json({
       success: true,
       customers: customers,
@@ -201,11 +232,17 @@ exports.getFilteredCustomers = async (req, res) => {
       daysPeriod: daysPeriod
     });
   } catch (error) {
-    console.error('Error fetching filtered customers:', error);
+    console.error('❌ Error fetching filtered customers:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code
+    });
     res.status(500).json({ 
       success: false,
       message: 'Error fetching filtered customers', 
-      error: error.message 
+      error: error.message,
+      details: error.code || 'Unknown error'
     });
   } finally {
     if (client) {
