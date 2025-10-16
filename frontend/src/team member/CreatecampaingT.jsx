@@ -136,6 +136,59 @@ function CampaignCreation() {
     attachments: []
   });
 
+  // File validation state
+  const [fileErrors, setFileErrors] = useState([]);
+
+  // File validation constants and helper
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const VALID_EXT_REGEX = /\.(pdf|docx|jpg|jpeg|png)$/i;
+  const validateAndFilterFiles = (fileList) => {
+    const validFiles = [];
+    const errors = [];
+
+    Array.from(fileList).forEach((file) => {
+      // Some attachments may be strings (file names) when loading templates
+      if (!file || typeof file === 'string') return;
+
+      const name = file.name || '';
+
+      if (!VALID_EXT_REGEX.test(name)) {
+        errors.push(`${name}: Unsupported file type. Allowed: PDF, DOCX, JPG, PNG`);
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        errors.push(`${name}: File too large. Max allowed size is 10MB`);
+        return;
+      }
+
+      validFiles.push(file);
+    });
+
+    return { validFiles, errors };
+  };
+
+  // Centralized handler to validate and add files (used by input change and drag/drop)
+  const handleFiles = (fileList) => {
+    if (!fileList || fileList.length === 0) return;
+
+    const { validFiles, errors } = validateAndFilterFiles(fileList);
+
+    if (validFiles.length > 0) {
+      setFormData(prevState => ({
+        ...prevState,
+        attachments: [...prevState.attachments, ...validFiles]
+      }));
+    }
+
+    if (errors.length > 0) {
+      setFileErrors(errors);
+      setTimeout(() => setFileErrors([]), 6000);
+    } else {
+      setFileErrors([]);
+    }
+  };
+
   const [showEmailPreview, setShowEmailPreview] = useState(false);
   const [showSMSPreview, setShowSMSPreview] = useState(false);
   
@@ -236,10 +289,7 @@ function CampaignCreation() {
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === 'attachments') {
-      setFormData(prevState => ({
-        ...prevState,
-        attachments: [...prevState.attachments, ...Array.from(files)]
-      }));
+      handleFiles(files);
     } else {
       setFormData(prevState => ({
         ...prevState,
@@ -303,13 +353,7 @@ function CampaignCreation() {
   };
 
   const handleFileUpload = (e) => {
-    const files = e.target.files;
-    if (files) {
-      setFormData(prevState => ({
-        ...prevState,
-        attachments: [...prevState.attachments, ...Array.from(files)]
-      }));
-    }
+    handleFiles(e.target.files);
   };
 
   const removeAttachment = (index) => {
@@ -322,12 +366,7 @@ function CampaignCreation() {
   const handleDrop = (e) => {
     e.preventDefault();
     const files = e.dataTransfer.files;
-    if (files) {
-      setFormData(prevState => ({
-        ...prevState,
-        attachments: [...prevState.attachments, ...Array.from(files)]
-      }));
-    }
+    handleFiles(files);
   };
 
   const handleDragOver = (e) => {
@@ -1178,6 +1217,14 @@ function CampaignCreation() {
                   Browse Files
                 </button>
               </div>
+              {/* File errors */}
+              {fileErrors.length > 0 && (
+                <div className="mt-3">
+                  {fileErrors.map((err, idx) => (
+                    <p key={idx} className="text-sm text-red-600">{err}</p>
+                  ))}
+                </div>
+              )}
               {formData.attachments.length > 0 && (
                 <div className="mt-3">
                   <ul className="space-y-2">
