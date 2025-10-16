@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import Campaingdate from '../Tables/Campaingdate.jsx'
 import Navbarm from './Navbarm.jsx'
+import API from '../api'
 
 // API Configuration
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
@@ -16,8 +17,24 @@ const Campaignreview = () => {
   const [error, setError] = useState(null);
   const [notes, setNotes] = useState('');
   const [resubmissionDeadline, setResubmissionDeadline] = useState('');
+  const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
+    // Fetch user role
+    const fetchUserRole = async () => {
+      try {
+        const response = await API.get('/auth/profile');
+        setUserRole(response.data.role);
+      } catch (error) {
+        console.error('Failed to fetch user role:', error);
+        // Fallback to localStorage
+        const role = localStorage.getItem('userRole') || '';
+        setUserRole(role);
+      }
+    };
+
+    fetchUserRole();
+
     if (campaignId) {
       fetchCampaignDetails();
     } else {
@@ -238,31 +255,43 @@ const Campaignreview = () => {
                        </div>
 
                         <div className='mt-8 border-t pt-6'>
-                          <div className='mt-5'>
-                            <label className='font-semibold'>
-                              {campaign.status === 'pending_approval' 
-                                ? 'Manager Feedback / Decision Note' 
-                                : 'Manager Notes'}
-                            </label>
-                            <p className='text-sm text-gray-500 mt-1'>
-                              {campaign.status === 'pending_approval' 
-                                ? 'Provide feedback for approval, resubmission request, or complete rejection. The team member will see this message.'
-                                : 'Add any notes about this campaign'}
-                            </p>
-                          </div>
-                          <div className='mt-2'>
-                            <textarea
-                              value={notes}
-                              onChange={(e) => setNotes(e.target.value)}
-                              placeholder={campaign.status === 'pending_approval' 
-                                ? "e.g., 'Please update the email subject to be more engaging and fix the target date range...'" 
-                                : "Enter your notes here..."}
-                              className="w-3/4 min-h-[120px] px-3 py-2 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
+                          {(userRole || '').toLowerCase() !== 'admin' && (
+                            <>
+                              <div className='mt-5'>
+                                <label className='font-semibold'>
+                                  {campaign.status === 'pending_approval' 
+                                    ? 'Manager Feedback / Decision Note' 
+                                    : 'Manager Notes'}
+                                </label>
+                                <p className='text-sm text-gray-500 mt-1'>
+                                  {campaign.status === 'pending_approval' 
+                                    ? 'Provide feedback for approval, resubmission request, or complete rejection. The team member will see this message.'
+                                    : 'Add any notes about this campaign'}
+                                </p>
+                              </div>
+                              <div className='mt-2'>
+                                <textarea
+                                  value={notes}
+                                  onChange={(e) => setNotes(e.target.value)}
+                                  placeholder={campaign.status === 'pending_approval' 
+                                    ? "e.g., 'Please update the email subject to be more engaging and fix the target date range...'" 
+                                    : "Enter your notes here..."}
+                                  className="w-3/4 min-h-[120px] px-3 py-2 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              </div>
+                            </>
+                          )}
+
+                          {(userRole || '').toLowerCase() === 'admin' && (
+                            <div className='mt-5 p-4 bg-yellow-50 rounded-lg border border-yellow-200'>
+                              <p className='text-sm text-yellow-800'>
+                                <strong>View-Only Access:</strong> As an admin, you can view campaign details but cannot approve, reject, or request resubmission.
+                              </p>
+                            </div>
+                          )}
 
                           <div className='flex gap-3 w-auto mt-6 flex-wrap'> 
-                            {campaign.status === 'pending_approval' && (
+                            {(userRole || '').toLowerCase() !== 'admin' && campaign.status === 'pending_approval' && (
                               <>
                                 <button 
                                   type="button" 
@@ -292,11 +321,11 @@ const Campaignreview = () => {
                               onClick={() => navigate(-1)}
                               className='px-6 py-2 bg-gray-400 text-white rounded-3xl hover:bg-gray-500 font-medium'
                             >
-                              {campaign.status === 'pending_approval' ? 'Cancel' : 'Back'}
+                              {campaign.status === 'pending_approval' && (userRole || '').toLowerCase() !== 'admin' ? 'Cancel' : 'Back'}
                             </button>
                           </div>
                           
-                          {campaign.status === 'pending_approval' && (
+                          {(userRole || '').toLowerCase() !== 'admin' && campaign.status === 'pending_approval' && (
                             <div className='mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200'>
                               <p className='text-sm text-blue-800'>
                                 <strong>Note:</strong><br/>

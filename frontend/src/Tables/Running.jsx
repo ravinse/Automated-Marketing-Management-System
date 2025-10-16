@@ -4,7 +4,7 @@ import { Button } from "@material-tailwind/react";
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
-const Running = () => {
+const Running = ({ isViewOnly = false }) => {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -174,12 +174,14 @@ const Running = () => {
                   </td>
                   <td className="p-4 border-b border-slate-200">
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => handleComplete(campaign._id)}
-                        className="text-green-600 hover:text-green-800 font-medium text-sm"
-                      >
-                        Complete
-                      </button>
+                      {!isViewOnly && (
+                        <button
+                          onClick={() => handleComplete(campaign._id)}
+                          className="text-green-600 hover:text-green-800 font-medium text-sm"
+                        >
+                          Complete
+                        </button>
+                      )}
                       <Link
                         to={`/campaingreviewt?campaignId=${campaign._id}`}
                         className="text-blue-600 hover:text-blue-800 font-medium text-sm"
