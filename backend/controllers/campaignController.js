@@ -138,8 +138,14 @@ exports.updateCampaign = async (req, res) => {
     if (endDate !== undefined) campaign.endDate = endDate;
     if (selectedFilters !== undefined) campaign.selectedFilters = selectedFilters;
     if (customerSegments !== undefined) campaign.customerSegments = customerSegments;
-    if (targetedCustomerIds !== undefined) campaign.targetedCustomerIds = targetedCustomerIds;
-    if (targetedCustomerCount !== undefined) campaign.targetedCustomerCount = targetedCustomerCount;
+    if (targetedCustomerIds !== undefined) {
+      campaign.targetedCustomerIds = targetedCustomerIds;
+      console.log(`✅ Updated targetedCustomerIds: ${targetedCustomerIds.length} customers`);
+    }
+    if (targetedCustomerCount !== undefined) {
+      campaign.targetedCustomerCount = targetedCustomerCount;
+      console.log(`✅ Updated targetedCustomerCount: ${targetedCustomerCount}`);
+    }
     if (emailSubject !== undefined) campaign.emailSubject = emailSubject;
     if (emailContent !== undefined) campaign.emailContent = emailContent;
     if (smsContent !== undefined) campaign.smsContent = smsContent;
@@ -192,6 +198,14 @@ exports.autoSaveCampaign = async (req, res) => {
         campaign[key] = updateData[key];
       }
     });
+
+    // Log customer targeting updates
+    if (updateData.targetedCustomerIds !== undefined) {
+      console.log(`✅ Auto-save: targetedCustomerIds updated (${updateData.targetedCustomerIds.length} customers)`);
+    }
+    if (updateData.targetedCustomerCount !== undefined) {
+      console.log(`✅ Auto-save: targetedCustomerCount updated (${updateData.targetedCustomerCount})`);
+    }
 
     await campaign.save();
     res.json({ 
@@ -642,9 +656,18 @@ exports.executeCampaign = async (req, res) => {
     const db = mongoClient.db(DATABASE_NAME);
     const ordersCollection = db.collection(ORDERS_COLLECTION);
     
+    console.log(`📋 Campaign Debug Info:`);
+    console.log(`   - Campaign ID: ${campaign._id}`);
+    console.log(`   - Title: ${campaign.title}`);
+    console.log(`   - Status: ${campaign.status}`);
+    console.log(`   - Customer Segments: ${JSON.stringify(campaign.customerSegments)}`);
+    console.log(`   - Targeted Customer Count: ${campaign.targetedCustomerCount}`);
+    console.log(`   - Targeted Customer IDs Length: ${campaign.targetedCustomerIds?.length || 0}`);
+    
     if (campaign.targetedCustomerIds && campaign.targetedCustomerIds.length > 0) {
       // Get customers by IDs from orders collection
       console.log(`📋 Fetching ${campaign.targetedCustomerIds.length} targeted customers by IDs`);
+      console.log(`   First 5 IDs: ${campaign.targetedCustomerIds.slice(0, 5).join(', ')}`);
       
       const customerData = await ordersCollection.aggregate([
         {
@@ -661,6 +684,8 @@ exports.executeCampaign = async (req, res) => {
         }
       ]).toArray();
       
+      console.log(`   Found ${customerData.length} customers in orders collection`);
+      
       customers = customerData.map(c => ({
         _id: c._id,
         name: c.customer_name,
@@ -668,8 +693,17 @@ exports.executeCampaign = async (req, res) => {
         phone: c.phone_number
       }));
     } else {
+      console.error(`❌ No customer IDs found in campaign!`);
+      console.error(`   Campaign shows ${campaign.targetedCustomerCount} customers but IDs array is empty`);
+      console.error(`   This means customer IDs were not saved during campaign creation`);
+      
       return res.status(400).json({ 
-        message: "Campaign has no targeted customers. Please ensure customer IDs are saved in the campaign." 
+        message: `Campaign has no targeted customers. The campaign shows ${campaign.targetedCustomerCount} customer count but no customer IDs are saved. Please re-select customers and save the campaign again.`,
+        debug: {
+          campaignId: campaign._id,
+          targetedCustomerCount: campaign.targetedCustomerCount,
+          targetedCustomerIdsLength: campaign.targetedCustomerIds?.length || 0
+        }
       });
     }
 

@@ -100,6 +100,11 @@ const Completed = ({ isViewOnly = false }) => {
                   Target Segments
                 </p>
               </th>
+              <th className="p-3 md:p-4 border-b border-slate-300 bg-slate-50 hidden lg:table-cell">
+                <p className="block text-xs md:text-sm font-bold leading-none text-slate-500">
+                  Target Count
+                </p>
+              </th>
               <th className="p-3 md:p-4 border-b border-slate-300 bg-slate-50 hidden sm:table-cell">
                 <p className="block text-xs md:text-sm font-bold leading-none text-slate-500">
                   Duration
@@ -138,17 +143,41 @@ const Completed = ({ isViewOnly = false }) => {
                     </p>
                   </td>
                   <td className="p-3 md:p-4 border-b border-slate-200 hidden md:table-cell">
-                    <p className="block text-xs md:text-sm text-slate-800 break-words">
-                      {campaign.customerSegments && campaign.customerSegments.length > 0
-                        ? campaign.customerSegments.join(', ')
-                        : campaign.targetSegments && campaign.targetSegments.length > 0
-                        ? campaign.targetSegments.join(', ')
-                        : 'All Customers'}
+                    <div className="flex flex-wrap gap-1">
+                      {campaign.customerSegments && campaign.customerSegments.length > 0 ? (
+                        campaign.customerSegments.slice(0, 2).map((segment, idx) => (
+                          <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            {segment}
+                          </span>
+                        ))
+                      ) : campaign.targetSegments && campaign.targetSegments.length > 0 ? (
+                        campaign.targetSegments.slice(0, 2).map((segment, idx) => (
+                          <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            {segment}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs md:text-sm text-slate-600">All Customers</span>
+                      )}
+                      {(campaign.customerSegments?.length > 2 || campaign.targetSegments?.length > 2) && (
+                        <span className="text-xs text-slate-500">
+                          +{(campaign.customerSegments?.length || campaign.targetSegments?.length) - 2} more
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="p-3 md:p-4 border-b border-slate-200 hidden lg:table-cell">
+                    <p className="block text-xs md:text-sm text-slate-800 font-medium">
+                      {campaign.targetedCustomerCount || 0}
                     </p>
+                    <p className="block text-xs text-slate-500">customers</p>
                   </td>
                   <td className="p-3 md:p-4 border-b border-slate-200 hidden sm:table-cell">
                     <p className="block text-xs md:text-sm text-slate-800 whitespace-nowrap">
-                      {formatDate(campaign.startDate)} - {formatDate(campaign.endDate)}
+                      {formatDate(campaign.startDate)}
+                    </p>
+                    <p className="block text-xs text-slate-500">
+                      to {formatDate(campaign.endDate)}
                     </p>
                   </td>
                   <td className="p-3 md:p-4 border-b border-slate-200">

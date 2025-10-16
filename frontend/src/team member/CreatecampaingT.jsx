@@ -210,6 +210,34 @@ function CampaignCreation() {
         }));
 
         console.log(`✅ Found ${data.count} customers matching selected segments (last 14 days)`);
+        console.log(`✅ Updated formData with ${customerIds.length} customer IDs`);
+        console.log(`   First 5 IDs:`, customerIds.slice(0, 5));
+        
+        // Save customer IDs to campaign immediately if campaign exists
+        if (campaignId) {
+          console.log('💾 Auto-saving customer IDs to campaign...');
+          try {
+            const saveResponse = await fetch(`${API_URL}/campaigns/autosave/${campaignId}`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                targetedCustomerIds: customerIds,
+                targetedCustomerCount: data.count,
+                customerSegments: segments
+              })
+            });
+            
+            if (saveResponse.ok) {
+              console.log('✅ Customer IDs saved to campaign successfully');
+            } else {
+              console.warn('⚠️ Failed to auto-save customer IDs');
+            }
+          } catch (saveError) {
+            console.error('❌ Error auto-saving customer IDs:', saveError);
+          }
+        }
       } else {
         const errorText = await response.text();
         console.error('❌ Failed to fetch customer preview:', response.status, errorText);
@@ -383,6 +411,22 @@ function CampaignCreation() {
       return;
     }
 
+    // Validate customer segments and IDs
+    if (!formData.customerSegments || formData.customerSegments.length === 0) {
+      alert('Please select at least one customer segment');
+      return;
+    }
+
+    if (!formData.targetedCustomerIds || formData.targetedCustomerIds.length === 0) {
+      alert('No customers found for selected segments. Please select different segments or check if customer data is available.');
+      return;
+    }
+
+    console.log('📋 Validating customer allocation before submission:');
+    console.log('   - Customer Segments:', formData.customerSegments);
+    console.log('   - Targeted Customer Count:', formData.targetedCustomerCount);
+    console.log('   - Targeted Customer IDs:', formData.targetedCustomerIds.length);
+
     try {
       console.log('Starting submission process...');
       console.log('API_URL:', API_URL);
@@ -402,11 +446,17 @@ function CampaignCreation() {
         smsContent: formData.smsContent || '',
         selectedFilters: formData.selectedFilters || [],
         customerSegments: formData.customerSegments || [],
+        targetedCustomerIds: formData.targetedCustomerIds || [],
+        targetedCustomerCount: formData.targetedCustomerCount || 0,
         status: 'pending_approval',
         submittedAt: new Date().toISOString(),
         createdBy: localStorage.getItem('userEmail') || 'team-member',
         currentStep: currentStep || 'basic'
       };
+
+      console.log('💾 Campaign data to be sent:');
+      console.log('   - Customer IDs:', campaignData.targetedCustomerIds.length);
+      console.log('   - Customer Count:', campaignData.targetedCustomerCount);
 
       console.log('Campaign data to be sent:', campaignData);
 

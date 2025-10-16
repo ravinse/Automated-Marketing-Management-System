@@ -112,6 +112,11 @@ const Running = ({ isViewOnly = false }) => {
                 </th>
                 <th className="p-4 border-b border-slate-300 bg-slate-50">
                   <p className="block text-sm font-bold leading-none text-slate-500">
+                    Target Count
+                  </p>
+                </th>
+                <th className="p-4 border-b border-slate-300 bg-slate-50">
+                  <p className="block text-sm font-bold leading-none text-slate-500">
                     Start Date
                   </p>
                 </th>
@@ -150,12 +155,26 @@ const Running = ({ isViewOnly = false }) => {
                     </p>
                   </td>
                   <td className="p-4 border-b border-slate-200">
-                    <p className="block text-sm text-slate-800">
-                      {campaign.customerSegments && campaign.customerSegments.length > 0
-                        ? campaign.customerSegments.slice(0, 2).join(', ') + 
-                          (campaign.customerSegments.length > 2 ? '...' : '')
-                        : 'All Customers'}
+                    <div className="flex flex-wrap gap-1">
+                      {campaign.customerSegments && campaign.customerSegments.length > 0 ? (
+                        campaign.customerSegments.slice(0, 2).map((segment, idx) => (
+                          <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            {segment}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-sm text-slate-600">All Customers</span>
+                      )}
+                      {campaign.customerSegments && campaign.customerSegments.length > 2 && (
+                        <span className="text-xs text-slate-500">+{campaign.customerSegments.length - 2} more</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="p-4 border-b border-slate-200">
+                    <p className="block text-sm text-slate-800 font-medium">
+                      {campaign.targetedCustomerCount || 0}
                     </p>
+                    <p className="block text-xs text-slate-500">customers</p>
                   </td>
                   <td className="p-4 border-b border-slate-200">
                     <p className="block text-sm text-slate-800">

@@ -154,6 +154,34 @@ function CampaignCreation() {
         }));
 
         console.log(`✅ Found ${data.count} customers matching selected segments (last 14 days)`);
+        console.log(`✅ Updated formData with ${customerIds.length} customer IDs`);
+        console.log(`   First 5 IDs:`, customerIds.slice(0, 5));
+        
+        // Save customer IDs to campaign immediately if campaign exists
+        if (campaignId) {
+          console.log('💾 Auto-saving customer IDs to campaign...');
+          try {
+            const saveResponse = await fetch(`${API_URL}/campaigns/autosave/${campaignId}`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                targetedCustomerIds: customerIds,
+                targetedCustomerCount: data.count,
+                customerSegments: segments
+              })
+            });
+            
+            if (saveResponse.ok) {
+              console.log('✅ Customer IDs saved to campaign successfully');
+            } else {
+              console.warn('⚠️ Failed to auto-save customer IDs');
+            }
+          } catch (saveError) {
+            console.error('❌ Error auto-saving customer IDs:', saveError);
+          }
+        }
       } else {
         const errorText = await response.text();
         console.error('❌ Failed to fetch customer preview:', response.status, errorText);
@@ -312,12 +340,31 @@ function CampaignCreation() {
       return;
     }
 
+    // Validate customer segments and IDs
+    if (!formData.customerSegments || formData.customerSegments.length === 0) {
+      alert('Please select at least one customer segment');
+      return;
+    }
+
+    if (!formData.targetedCustomerIds || formData.targetedCustomerIds.length === 0) {
+      alert('No customers found for selected segments. Please select different segments or check if customer data is available.');
+      return;
+    }
+
+    console.log('📋 Validating customer allocation before submission:');
+    console.log('   - Customer Segments:', formData.customerSegments);
+    console.log('   - Targeted Customer Count:', formData.targetedCustomerCount);
+    console.log('   - Targeted Customer IDs:', formData.targetedCustomerIds.length);
+
     try {
       let currentCampaignId = campaignId;
       
-      // First, ensure campaign is saved with all current data (including dates)
+      // First, ensure campaign is saved with all current data (including dates and customer IDs)
       if (!currentCampaignId) {
         // Save campaign first and get the ID
+        console.log('💾 Creating new campaign with customer data...');
+        console.log('   - Customer IDs to save:', formData.targetedCustomerIds.length);
+        
         const saveResponse = await fetch(`${API_URL}/campaigns`, {
           method: 'POST',
           headers: {
@@ -336,8 +383,17 @@ function CampaignCreation() {
         const saveResult = await saveResponse.json();
         currentCampaignId = saveResult.campaign._id;
         setCampaignId(currentCampaignId);
+        console.log('✅ Campaign created with ID:', currentCampaignId);
+        console.log('   - Customer IDs saved:', saveResult.campaign.targetedCustomerIds?.length || 0);
       } else {
         // Update existing campaign with all current data (including dates)
+        console.log('📋 Updating campaign before submission...');
+        console.log('   - Campaign ID:', currentCampaignId);
+        console.log('   - Customer Segments:', formData.customerSegments);
+        console.log('   - Targeted Customer Count:', formData.targetedCustomerCount);
+        console.log('   - Targeted Customer IDs Length:', formData.targetedCustomerIds?.length || 0);
+        console.log('   - First 5 Customer IDs:', formData.targetedCustomerIds?.slice(0, 5));
+        
         const updateResponse = await fetch(`${API_URL}/campaigns/autosave/${currentCampaignId}`, {
           method: 'PATCH',
           headers: {
@@ -350,7 +406,9 @@ function CampaignCreation() {
         });
 
         if (!updateResponse.ok) throw new Error('Failed to update campaign');
-        console.log('Campaign data updated before submission');
+        const updateResult = await updateResponse.json();
+        console.log('✅ Campaign data updated before submission');
+        console.log('   - Updated campaign customer IDs:', updateResult.campaign?.targetedCustomerIds?.length || 0);
       }
 
       if (!currentCampaignId) {
