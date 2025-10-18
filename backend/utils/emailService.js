@@ -44,17 +44,79 @@ const sendEmail = async (to, subject, htmlContent, textContent = null, campaignI
     console.log('  - Has <html tag:', htmlContent.includes('<html'));
     console.log('  - Has <a tag:', htmlContent.includes('<a '));
     
-    // Wrap plain text content in HTML if needed
+    // Wrap plain text content in HTML if needed with professional styling
     if (!finalHtmlContent.includes('<html') && !finalHtmlContent.includes('<body')) {
       console.log('  ✅ Wrapping content in HTML structure');
       finalHtmlContent = `
-        <html>
+        <!DOCTYPE html>
+        <html lang="en">
           <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <title>Marketing Campaign</title>
+            <style>
+              @media only screen and (max-width: 600px) {
+                .email-container {
+                  width: 100% !important;
+                  padding: 10px !important;
+                }
+                .content-wrapper {
+                  padding: 20px !important;
+                }
+                .cta-button {
+                  padding: 12px 30px !important;
+                  font-size: 14px !important;
+                }
+              }
+            </style>
           </head>
-          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-            ${finalHtmlContent}
+          <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7fa;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f7fa;">
+              <tr>
+                <td style="padding: 20px 0;">
+                  <!-- Main Container -->
+                  <table role="presentation" class="email-container" cellspacing="0" cellpadding="0" border="0" align="center" 
+                         style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    
+                    <!-- Header Section -->
+                    <tr>
+                      <td style="background: linear-gradient(135deg, #00AF96 0%, #00D9B5 100%); padding: 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
+                          🎯 Special Message for You
+                        </h1>
+                      </td>
+                    </tr>
+                    
+                    <!-- Content Section -->
+                    <tr>
+                      <td class="content-wrapper" style="padding: 40px 30px; color: #333333; font-size: 16px; line-height: 1.8;">
+                        <div style="text-align: left;">
+                          ${finalHtmlContent}
+                        </div>
+                      </td>
+                    </tr>
+                    
+                    <!-- Footer Section -->
+                    <tr>
+                      <td style="background-color: #f8f9fa; padding: 30px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e9ecef;">
+                        <p style="margin: 0 0 10px 0; color: #6c757d; font-size: 14px; line-height: 1.6;">
+                          Thank you for being a valued customer! 💙
+                        </p>
+                        <p style="margin: 0; color: #adb5bd; font-size: 12px; line-height: 1.5;">
+                          © ${new Date().getFullYear()} Marketing Management System. All rights reserved.
+                        </p>
+                        <div style="margin-top: 15px;">
+                          <a href="#" style="color: #00AF96; text-decoration: none; font-size: 12px; margin: 0 10px;">Privacy Policy</a>
+                          <span style="color: #dee2e6;">|</span>
+                          <a href="#" style="color: #00AF96; text-decoration: none; font-size: 12px; margin: 0 10px;">Unsubscribe</a>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
           </body>
         </html>
       `;
@@ -68,32 +130,55 @@ const sendEmail = async (to, subject, htmlContent, textContent = null, campaignI
       if (!finalHtmlContent.includes('<a ') && !finalHtmlContent.includes('href=')) {
         console.log('  ✅ Adding CTA button (no links found)');
         
-        // Simple, Gmail-friendly button
+        // Professional, attractive CTA button
         const ctaButton = `
-          <br><br>
-          <div style="text-align: center; margin: 20px 0;">
-            <table cellspacing="0" cellpadding="0" border="0" align="center">
-              <tr>
-                <td align="center" bgcolor="#00AF96" style="border-radius: 5px;">
-                  <a href="http://localhost:5174" target="_blank" 
-                     style="font-size: 16px; 
-                            font-family: Arial, sans-serif; 
-                            color: #ffffff; 
-                            text-decoration: none; 
-                            padding: 15px 40px; 
-                            display: inline-block; 
-                            font-weight: bold;">
-                    🛒 Visit Our Website
-                  </a>
-                </td>
-              </tr>
-            </table>
-          </div>
-          <br>
+          <!-- CTA Button Section -->
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 30px 0;">
+            <tr>
+              <td align="center" style="padding: 20px 0;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                  <tr>
+                    <td align="center" style="border-radius: 6px; background: linear-gradient(135deg, #00AF96 0%, #00D9B5 100%); box-shadow: 0 4px 15px rgba(0, 175, 150, 0.3);">
+                      <a href="http://localhost:5174" target="_blank" 
+                         style="font-size: 16px; 
+                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                                color: #ffffff; 
+                                text-decoration: none; 
+                                padding: 16px 50px; 
+                                display: inline-block; 
+                                font-weight: 600;
+                                letter-spacing: 0.5px;
+                                text-transform: uppercase;
+                                transition: all 0.3s ease;">
+                        🛒 Shop Now
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          
+          <!-- Divider -->
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
+            <tr>
+              <td style="border-bottom: 2px solid #e9ecef;"></td>
+            </tr>
+          </table>
         `;
         
-        // Insert button before closing body tag
-        if (finalHtmlContent.includes('</body>')) {
+        // Insert button before content wrapper closing tag or body tag
+        if (finalHtmlContent.includes('</div>')) {
+          // Find the last closing div (content wrapper) and insert before it
+          const lastDivIndex = finalHtmlContent.lastIndexOf('</div>');
+          finalHtmlContent = finalHtmlContent.substring(0, lastDivIndex) + ctaButton + finalHtmlContent.substring(lastDivIndex);
+        } else if (finalHtmlContent.includes('</td>')) {
+          // Insert before content wrapper closing
+          const contentTdIndex = finalHtmlContent.indexOf('</td>', finalHtmlContent.indexOf('content-wrapper'));
+          if (contentTdIndex > -1) {
+            finalHtmlContent = finalHtmlContent.substring(0, contentTdIndex) + ctaButton + finalHtmlContent.substring(contentTdIndex);
+          }
+        } else if (finalHtmlContent.includes('</body>')) {
           finalHtmlContent = finalHtmlContent.replace('</body>', `${ctaButton}</body>`);
         } else {
           finalHtmlContent += ctaButton;

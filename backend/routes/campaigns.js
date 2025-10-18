@@ -15,6 +15,12 @@ router.get("/performance/overall", campaignController.getOverallPerformance);
 // Get completed campaigns with performance metrics
 router.get("/performance/completed", campaignController.getCompletedCampaignsPerformance);
 
+// Get strategic dashboard metrics (owner)
+router.get("/strategic-metrics", campaignController.getStrategicMetrics);
+
+// Get campaign overview metrics (owner)
+router.get("/overview-metrics", campaignController.getCampaignOverviewMetrics);
+
 // Create new campaign
 router.post("/", campaignController.createCampaign);
 
