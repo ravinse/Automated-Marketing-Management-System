@@ -18,7 +18,7 @@ A comprehensive full-stack marketing automation platform with intelligent custom
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
-- [Railway Deployment](#railway-deployment) ⭐ **NEW**
+- [Railway Deployment](#railway-deployment)
 - [Project Structure](#project-structure)
 - [API Documentation](#api-documentation)
 - [Workflow](#workflow)
