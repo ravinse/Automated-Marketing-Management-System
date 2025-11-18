@@ -115,7 +115,7 @@ const Home = () => {
               <h1 className="text-4xl font-bold text-gray-900 mb-2">Campaign Dashboard</h1>
               <p className="text-gray-600">Manage and track all your marketing campaigns</p>
             </div>
-            <Link to="/createcampaingt">
+            <Link to="/createcampaignt">
               <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                 + New Campaign
               </button>

@@ -78,7 +78,7 @@ const Drafted = () => {
       {draftedCampaigns.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-600 mb-4">No drafted campaigns yet</p>
-          <Link to="/createcampaingt">
+          <Link to="/createcampaignt">
             <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
               Create Campaign
             </button>
@@ -126,7 +126,7 @@ const Drafted = () => {
                 </td>
                 <td className="py-3 px-4 text-sm">
                   <div className="flex gap-2">
-                    <Link to={`/createcampaingt?campaignId=${campaign._id}`}>
+                    <Link to={`/createcampaignt?campaignId=${campaign._id}`}>
                       <button className="text-blue-600 hover:text-blue-800 font-medium">
                         Edit
                       </button>

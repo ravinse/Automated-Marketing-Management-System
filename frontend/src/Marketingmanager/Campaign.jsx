@@ -50,7 +50,7 @@ const Campaign = () => {
               )}
             </div>
             {!isAdmin && (
-              <Link to="/createcampaingm">
+              <Link to="/createcampaignm">
                 <button className="bg-[#F2F2F5] text-black px-6 py-2.5 rounded-full hover:bg-[#E0E0E5] transition-colors font-medium shadow-sm w-full sm:w-auto">
                   Create Campaign
                 </button>

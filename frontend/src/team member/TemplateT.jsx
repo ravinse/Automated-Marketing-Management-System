@@ -6,7 +6,7 @@ import Navbart from './Navbart';
 // API Configuration
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
-const Templete = () => {
+const TemplateT = () => {
   const navigate = useNavigate();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,12 +36,12 @@ const Templete = () => {
 
   const handleUseTemplate = async (templateId) => {
     // Navigate to campaign creation page with template ID
-    navigate(`/createcampaingt?templateId=${templateId}`);
+    navigate(`/createcampaignt?templateId=${templateId}`);
   };
 
   const handleEditTemplate = async (templateId) => {
     // Navigate to campaign creation page with template ID in edit mode
-    navigate(`/createcampaingt?templateId=${templateId}&editMode=true`);
+    navigate(`/createcampaignt?templateId=${templateId}&editMode=true`);
   };
 
   const handleDeleteTemplate = async (templateId) => {
@@ -80,7 +80,7 @@ const Templete = () => {
               Saved templates you can reuse for new campaigns
             </p>
           </div>
-          <Link to="/createcampaingt?createTemplate=true">
+          <Link to="/createcampaignt?createTemplate=true">
             <button className="bg-blue-600 text-white px-6 py-2.5 rounded-full hover:bg-blue-700 transition-colors font-medium shadow-sm w-full sm:w-auto">
               Add New Template
             </button>
@@ -222,4 +222,4 @@ const Templete = () => {
   )
 }
 
-export default Templete;
+export default TemplateT;

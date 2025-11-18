@@ -80,7 +80,7 @@ const SentForApproval = () => {
       {sentForApprovalCampaigns.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-600 mb-4">No campaigns sent for approval yet</p>
-          <Link to="/createcampaingt">
+          <Link to="/createcampaignt">
             <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
               Create Campaign
             </button>
@@ -163,13 +163,13 @@ const SentForApproval = () => {
                   </td>
                   <td className="py-3 px-4 text-sm">
                     <div className="flex gap-2 flex-wrap">
-                      <Link to={`/campaingreviewt?campaignId=${campaign._id}`}>
+                      <Link to={`/campaignreviewt?campaignId=${campaign._id}`}>
                         <button className="text-blue-600 hover:text-blue-800 font-medium">
                           View Details
                         </button>
                       </Link>
                       {campaign.status === 'rejected' ? (
-                        <Link to={`/createcampaingt?edit=${campaign._id}`}>
+                        <Link to={`/createcampaignt?edit=${campaign._id}`}>
                           <button className="text-green-600 hover:text-green-800 font-medium">
                             Edit & Resubmit
                           </button>

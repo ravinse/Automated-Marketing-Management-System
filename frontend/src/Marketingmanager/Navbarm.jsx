@@ -99,16 +99,18 @@ const Navbarm = () => {
       <div className="ml-10">
         <nav className="flex sm:justify-center space-x-4">
           {(() => {
+            const role = (userRole || '').toLowerCase();
             let items;
-            if ((userRole || '').toLowerCase() === 'admin') {
-              // Admin only gets Dashboard, User Management, and Campaigns (view only)
+            
+            if (role === 'admin') {
+              // Admin: Dashboard, User Management, Campaigns (view-only)
               items = [
                 ['Dashboard', '/ahome'],
                 ['User Management', '/user-management'],
                 ['Campaigns', '/Campaign'],
               ];
-            } else {
-              // Other roles get full access
+            } else if (role === 'manager') {
+              // Manager: Dashboard, Campaigns, Templates, Performance, Feedback
               items = [
                 ['Dashboard', '/performance'],
                 ['Campaigns', '/Campaign'],
@@ -116,7 +118,21 @@ const Navbarm = () => {
                 ['Performance', '/performanceoverview'],
                 ['Feedback', '/Feedback'],
               ];
+            } else if (role === 'team member') {
+              // Team Member: Dashboard, Campaigns, Templates, Feedback
+              items = [
+                ['Dashboard', '/thome'],
+                ['Campaigns', '/Campaign'],
+                ['Templates', '/templatet'],
+                ['Feedback', '/feedbackT'],
+              ];
+            } else {
+              // Default/fallback
+              items = [
+                ['Dashboard', '/performance'],
+              ];
             }
+            
             return items;
           })().map(([title, url]) => (
             <Link

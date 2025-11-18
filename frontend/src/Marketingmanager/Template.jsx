@@ -6,7 +6,7 @@ import Navbarm from './Navbarm';
 // API Configuration
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
-const Templete = () => {
+const Template = () => {
   const navigate = useNavigate();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,12 +36,12 @@ const Templete = () => {
 
   const handleUseTemplate = async (templateId) => {
     // Navigate to campaign creation page with template ID
-    navigate(`/createcampaingm?templateId=${templateId}`);
+    navigate(`/createcampaignm?templateId=${templateId}`);
   };
 
   const handleEditTemplate = async (templateId) => {
     // Navigate to campaign creation page with template ID in edit mode
-    navigate(`/createcampaingm?templateId=${templateId}&editMode=true`);
+    navigate(`/createcampaignm?templateId=${templateId}&editMode=true`);
   };
 
   const handleDeleteTemplate = async (templateId) => {
@@ -76,7 +76,7 @@ const Templete = () => {
                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Campaign Templates</h1>
                <p className="text-gray-600 mt-1">Saved templates you can reuse for new campaigns</p>
              </div>
-             <Link to="/createcampaingm?createTemplate=true">
+             <Link to="/createcampaignm?createTemplate=true">
                <button className="bg-blue-600 text-white px-6 py-2.5 rounded-full hover:bg-blue-700 transition-colors font-medium shadow-sm w-full sm:w-auto">
                  Add New Template
                </button>
@@ -214,4 +214,4 @@ const Templete = () => {
   )
 }
 
-export default Templete;
+export default Template;

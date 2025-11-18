@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import Campaingdate from '../Tables/Campaingdate.jsx'
+import CampaignDate from '../Tables/CampaignDate.jsx'
 import Navbarm from './Navbarm.jsx'
 import API from '../api'
 

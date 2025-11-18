@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import Campaingdate from '../Tables/Campaingdate.jsx'
+import CampaignDate from '../Tables/CampaignDate.jsx'
 import Navbart from './Navbart.jsx'
 
 // API Configuration
@@ -287,7 +287,7 @@ const Campaignreview = () => {
                               <>
                                 <button 
                                   type="button" 
-                                  onClick={() => navigate(`/createcampaingt?edit=${campaign._id}`)}
+                                  onClick={() => navigate(`/createcampaignt?edit=${campaign._id}`)}
                                   className='px-8 py-3 bg-green-600 text-white rounded-3xl hover:bg-green-700 font-semibold text-base transition-colors shadow-lg'
                                 >
                                   Edit & Resubmit Campaign

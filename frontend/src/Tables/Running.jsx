@@ -202,7 +202,7 @@ const Running = ({ isViewOnly = false }) => {
                         </button>
                       )}
                       <Link
-                        to={`/campaingreviewt?campaignId=${campaign._id}`}
+                        to={`/campaignreviewt?campaignId=${campaign._id}`}
                         className="text-blue-600 hover:text-blue-800 font-medium text-sm"
                       >
                         View Details
