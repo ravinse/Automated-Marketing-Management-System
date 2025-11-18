@@ -1,18 +1,34 @@
+// ========================================
+// DRAFTED CAMPAIGNS TABLE
+// ========================================
+// Displays campaigns with 'draft' status
+// Allows editing and deleting draft campaigns
+// Part of team member campaign management workflow
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-// API Configuration
+// ========================================
+// API CONFIGURATION
+// ========================================
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 const Drafted = () => {
+  // ========================================
+  // STATE MANAGEMENT
+  // ========================================
   const [draftedCampaigns, setDraftedCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ========================================
+  // DATA FETCHING
+  // ========================================
   useEffect(() => {
     fetchDraftedCampaigns();
   }, []);
 
+  // Fetch campaigns with draft status from API
   const fetchDraftedCampaigns = async () => {
     try {
       setLoading(true);

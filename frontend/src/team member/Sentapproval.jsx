@@ -1,18 +1,34 @@
+// ========================================
+// SENT FOR APPROVAL TABLE
+// ========================================
+// Displays campaigns sent for manager approval
+// Shows three states: Pending Approval, Needs Resubmission (rejected), Rejected (final)
+// Allows viewing details, editing/resubmitting, or withdrawing campaigns
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-// API Configuration
+// ========================================
+// API CONFIGURATION
+// ========================================
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 const SentForApproval = () => {
+  // ========================================
+  // STATE MANAGEMENT
+  // ========================================
   const [sentForApprovalCampaigns, setSentForApprovalCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ========================================
+  // DATA FETCHING
+  // ========================================
   useEffect(() => {
     fetchSentForApprovalCampaigns();
   }, []);
 
+  // Fetch campaigns with status: pending_approval, rejected, or rejected_final
   const fetchSentForApprovalCampaigns = async () => {
     try {
       setLoading(true);

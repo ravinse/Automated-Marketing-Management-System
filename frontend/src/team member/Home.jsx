@@ -1,3 +1,10 @@
+// ========================================
+// TEAM MEMBER HOME PAGE
+// ========================================
+// Dashboard for team members showing campaign statistics
+// Displays campaigns grouped by status: Drafted, Sent for Approval, Running, Finished
+// Provides quick navigation to different campaign states
+
 import React, { useState, useEffect } from 'react'
 import Navbar from './Navbart';
 import { FileText, Send, PlayCircle, CheckCircle2 } from 'lucide-react';
@@ -7,10 +14,15 @@ import SentForApproval from './Sentapproval';
 import Running from './Running';
 import Finished from './Finished';
 
-// API Configuration
+// ========================================
+// API CONFIGURATION
+// ========================================
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 const Home = () => {
+  // ========================================
+  // STATE MANAGEMENT
+  // ========================================
   const [activeSection, setActiveSection] = useState(null);
   const [campaignCounts, setCampaignCounts] = useState({
     drafted: 0,
@@ -19,10 +31,14 @@ const Home = () => {
     finished: 0
   });
 
+  // ========================================
+  // DATA FETCHING
+  // ========================================
   useEffect(() => {
     fetchCampaignCounts();
   }, [activeSection]); // Refetch when section changes
 
+  // Fetch and count campaigns by status from API
   const fetchCampaignCounts = async () => {
     try {
       const response = await fetch(`${API_URL}/campaigns`);

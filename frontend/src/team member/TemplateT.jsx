@@ -1,17 +1,32 @@
+// ========================================
+// TEMPLATE MANAGEMENT PAGE (Team Member)
+// ========================================
+// Displays saved campaign templates
+// Allows using templates for new campaigns, editing, and deleting
+// Templates help streamline campaign creation process
+
 import React, { useState, useEffect } from 'react'
 import { Button } from "@material-tailwind/react";
 import {Link, useNavigate} from 'react-router-dom'
 import Navbart from './Navbart';
 
-// API Configuration
+// ========================================
+// API CONFIGURATION
+// ========================================
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 const TemplateT = () => {
   const navigate = useNavigate();
+  // ========================================
+  // STATE MANAGEMENT
+  // ========================================
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ========================================
+  // DATA FETCHING
+  // ========================================
   // Fetch templates from database
   useEffect(() => {
     fetchTemplates();

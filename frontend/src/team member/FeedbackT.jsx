@@ -1,11 +1,23 @@
+// ========================================
+// FEEDBACK PAGE (Team Member)
+// ========================================
+// Displays customer feedback and ratings for campaigns
+// Shows rating overview with distribution chart
+// Includes search and pagination functionality
+
 import React, { useEffect, useState } from 'react';
 import { Search, ChevronDown, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import Navbart from "./Navbart";
 
-// API Configuration
+// ========================================
+// API CONFIGURATION
+// ========================================
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
-// Rating Overview Component
+// ========================================
+// RATING OVERVIEW COMPONENT
+// ========================================
+// Displays average rating with star visualization and distribution bars
 const RatingOverview = ({ rating, totalReviews, ratingData }) => {
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, i) => (

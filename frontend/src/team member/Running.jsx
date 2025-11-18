@@ -1,18 +1,34 @@
+// ========================================
+// RUNNING CAMPAIGNS TABLE
+// ========================================
+// Displays campaigns currently executing
+// Shows approved campaigns that are actively sending messages
+// Allows viewing details and manually completing campaigns
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-// API Configuration
+// ========================================
+// API CONFIGURATION
+// ========================================
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 const Running = () => {
+  // ========================================
+  // STATE MANAGEMENT
+  // ========================================
   const [runningCampaigns, setRunningCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ========================================
+  // DATA FETCHING
+  // ========================================
   useEffect(() => {
     fetchRunningCampaigns();
   }, []);
 
+  // Fetch campaigns with running status from API
   const fetchRunningCampaigns = async () => {
     try {
       setLoading(true);
@@ -49,6 +65,7 @@ const Running = () => {
     }
   };
 
+  // Format date string to readable format
   const formatDate = (dateString) => {
     if (!dateString) return 'Not set';
     const date = new Date(dateString);

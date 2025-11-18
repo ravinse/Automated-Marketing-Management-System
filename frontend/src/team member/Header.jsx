@@ -1,3 +1,9 @@
+// ========================================
+// CAMPAIGN HEADER COMPONENT
+// ========================================
+// Simple header with title and "New Campaign" button
+// Used in team member campaign pages
+
 import { Link as LucideLink } from 'lucide-react'; // alias to avoid conflict
 import React from 'react';
 import { Link } from 'react-router-dom'; // this Link is used in your JSX

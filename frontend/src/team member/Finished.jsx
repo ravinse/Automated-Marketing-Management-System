@@ -1,18 +1,34 @@
+// ========================================
+// FINISHED CAMPAIGNS TABLE
+// ========================================
+// Displays completed campaigns
+// Shows campaigns that have finished execution
+// Allows viewing details and deleting old campaigns
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-// API Configuration
+// ========================================
+// API CONFIGURATION
+// ========================================
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 const Finished = () => {
+  // ========================================
+  // STATE MANAGEMENT
+  // ========================================
   const [finishedCampaigns, setFinishedCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ========================================
+  // DATA FETCHING
+  // ========================================
   useEffect(() => {
     fetchFinishedCampaigns();
   }, []);
 
+  // Fetch campaigns with completed status from API
   const fetchFinishedCampaigns = async () => {
     try {
       setLoading(true);
@@ -49,6 +65,7 @@ const Finished = () => {
     }
   };
 
+  // Format date string to readable format
   const formatDate = (dateString) => {
     if (!dateString) return 'Not set';
     const date = new Date(dateString);

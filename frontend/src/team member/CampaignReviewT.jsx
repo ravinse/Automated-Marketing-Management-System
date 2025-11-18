@@ -1,9 +1,18 @@
+// ========================================
+// CAMPAIGN REVIEW PAGE (Team Member)
+// ========================================
+// Detailed view of campaign for team members
+// Shows all campaign details in read-only format
+// Displays rejection feedback and allows editing/resubmitting rejected campaigns
+
 import React, { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import CampaignDate from '../Tables/CampaignDate.jsx'
 import Navbart from './Navbart.jsx'
 
-// API Configuration
+// ========================================
+// API CONFIGURATION
+// ========================================
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 const Campaignreview = () => {
@@ -11,12 +20,18 @@ const Campaignreview = () => {
   const navigate = useNavigate();
   const campaignId = searchParams.get('campaignId');
   
+  // ========================================
+  // STATE MANAGEMENT
+  // ========================================
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [notes, setNotes] = useState('');
   const [resubmissionDeadline, setResubmissionDeadline] = useState('');
 
+  // ========================================
+  // DATA FETCHING
+  // ========================================
   useEffect(() => {
     if (campaignId) {
       fetchCampaignDetails();
@@ -26,6 +41,7 @@ const Campaignreview = () => {
     }
   }, [campaignId]);
 
+  // Fetch campaign details by ID from API
   const fetchCampaignDetails = async () => {
     try {
       setLoading(true);
@@ -40,51 +56,6 @@ const Campaignreview = () => {
       setError('Failed to load campaign details');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleApprove = async () => {
-    if (!window.confirm('Are you sure you want to approve this campaign?')) return;
-    
-    try {
-      const response = await fetch(`${API_URL}/campaigns/${campaignId}/approve`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes })
-      });
-      
-      if (!response.ok) throw new Error('Failed to approve campaign');
-      
-      alert('Campaign approved successfully!');
-      navigate('/thome');
-    } catch (err) {
-      console.error('Error approving campaign:', err);
-      alert('Failed to approve campaign');
-    }
-  };
-
-  const handleReject = async () => {
-    if (!notes.trim()) {
-      alert('Please provide rejection notes');
-      return;
-    }
-    
-    if (!window.confirm('Are you sure you want to reject this campaign?')) return;
-    
-    try {
-      const response = await fetch(`${API_URL}/campaigns/${campaignId}/reject`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rejectionReason: notes })
-      });
-      
-      if (!response.ok) throw new Error('Failed to reject campaign');
-      
-      alert('Campaign rejected successfully!');
-      navigate('/thome');
-    } catch (err) {
-      console.error('Error rejecting campaign:', err);
-      alert('Failed to reject campaign');
     }
   };
 
