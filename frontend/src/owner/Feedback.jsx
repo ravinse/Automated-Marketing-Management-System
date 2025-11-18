@@ -1,8 +1,18 @@
+// ========================================
+// FEEDBACK PAGE (Owner)
+// ========================================
+// Displays customer feedback and ratings for campaigns
+// Shows average ratings, distribution, and individual reviews
+// Includes search functionality for filtering feedback
+
 import React, { useState, useEffect } from 'react';
 import OwnerNavbar from './OwnerNavbar';
 import API from '../api';
 
 const Feedback = () => {
+  // ========================================
+  // STATE MANAGEMENT
+  // ========================================
   const [overview, setOverview] = useState({
     averageRating: 0,
     totalReviews: 0,
@@ -13,10 +23,17 @@ const Feedback = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ========================================
+  // DATA FETCHING
+  // ========================================
   useEffect(() => {
     fetchFeedbackData();
   }, [searchTerm]);
 
+  // ========================================
+  // API FUNCTIONS
+  // ========================================
+  // Fetch feedback overview and list from API
   const fetchFeedbackData = async () => {
     try {
       setLoading(true);
@@ -45,6 +62,10 @@ const Feedback = () => {
     }
   };
 
+  // ========================================
+  // UTILITY FUNCTIONS
+  // ========================================
+  // Format date to relative time (e.g., "2 days ago")
   const formatDate = (dateString) => {
     if (!dateString) return 'Recently';
     const date = new Date(dateString);

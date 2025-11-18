@@ -1,8 +1,18 @@
+// ========================================
+// STRATEGIC DASHBOARD (Owner)
+// ========================================
+// High-level business metrics for strategic decision making
+// Shows revenue, customer growth, loyalty, and active campaigns
+// Designed for business owner overview
+
 import React, { useState, useEffect } from 'react';
 import OwnerNavbar from './OwnerNavbar';
 import API from '../api';
 
 const StrategicDashboard = () => {
+  // ========================================
+  // STATE MANAGEMENT
+  // ========================================
   const [metrics, setMetrics] = useState({
     totalRevenue: '0',
     revenueGrowth: '+0%',
@@ -15,6 +25,9 @@ const StrategicDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ========================================
+  // DATA FETCHING
+  // ========================================
   useEffect(() => {
     fetchStrategicMetrics();
   }, []);

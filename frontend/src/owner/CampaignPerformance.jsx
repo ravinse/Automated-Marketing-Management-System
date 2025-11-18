@@ -1,8 +1,18 @@
+// ========================================
+// CAMPAIGN PERFORMANCE PAGE (Owner)
+// ========================================
+// Detailed campaign analytics for business owners
+// Shows overall metrics and individual campaign performance
+// Includes revenue tracking, engagement rates, and conversions
+
 import React, { useState, useEffect } from 'react';
 import OwnerNavbar from './OwnerNavbar';
 import API from '../api';
 
 const CampaignPerformance = () => {
+  // ========================================
+  // STATE MANAGEMENT
+  // ========================================
   const [overallMetrics, setOverallMetrics] = useState({
     totalCampaigns: 0,
     activeCampaigns: 0,
@@ -21,6 +31,9 @@ const CampaignPerformance = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ========================================
+  // DATA FETCHING
+  // ========================================
   useEffect(() => {
     fetchPerformanceData();
   }, []);

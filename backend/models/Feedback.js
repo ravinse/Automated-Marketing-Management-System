@@ -5,6 +5,13 @@
 // Captures customer feedback on campaign effectiveness
 // Used for performance analytics and improvement
 
+// ========================================
+// FEEDBACK MODEL
+// ========================================
+// MongoDB schema for campaign feedback and ratings
+// Captures customer feedback on campaign effectiveness
+// Used for performance analytics and improvement
+
 const mongoose = require("mongoose");
 
 const feedbackSchema = new mongoose.Schema({

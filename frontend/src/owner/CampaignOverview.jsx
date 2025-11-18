@@ -1,14 +1,27 @@
+// ========================================
+// CAMPAIGN OVERVIEW PAGE (Owner)
+// ========================================
+// Provides detailed view of campaign metrics and performance
+// Shows aggregated statistics or individual campaign details
+// Includes engagement metrics and target audience information
+
 import React, { useState, useEffect } from 'react';
 import OwnerNavbar from './OwnerNavbar';
 import API from '../api';
 
 const CampaignOverview = () => {
+  // ========================================
+  // STATE MANAGEMENT
+  // ========================================
   const [campaignData, setCampaignData] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ========================================
+  // DATA FETCHING
+  // ========================================
   useEffect(() => {
     fetchCampaigns();
   }, []);
@@ -21,6 +34,10 @@ const CampaignOverview = () => {
     }
   }, [selectedCampaignId]);
 
+  // ========================================
+  // API FUNCTIONS
+  // ========================================
+  // Fetch list of executed campaigns for dropdown
   const fetchCampaigns = async () => {
     try {
       // Fetch campaigns that have been executed (have performance metrics)
