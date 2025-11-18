@@ -1,7 +1,16 @@
+// ========================================
+// TEMPLATE MODEL
+// ========================================
+// MongoDB schema for campaign templates
+// Allows saving and reusing campaign content configurations
+// Tracks template usage across campaigns
+
 const mongoose = require("mongoose");
 
 const templateSchema = new mongoose.Schema({
-  // Template Information
+  // ========================================
+  // TEMPLATE INFORMATION
+  // ========================================
   name: {
     type: String,
     required: true,
@@ -12,7 +21,9 @@ const templateSchema = new mongoose.Schema({
     trim: true
   },
   
-  // Campaign Content
+  // ========================================
+  // CAMPAIGN CONTENT
+  // ========================================
   emailSubject: {
     type: String,
     trim: true
@@ -26,6 +37,9 @@ const templateSchema = new mongoose.Schema({
     trim: true
   },
   
+  // ========================================
+  // TARGETING DEFAULTS
+  // ========================================
   // Targeting defaults (optional)
   selectedFilters: [{
     type: String
@@ -34,6 +48,9 @@ const templateSchema = new mongoose.Schema({
     type: String
   }],
   
+  // ========================================
+  // METADATA & TRACKING
+  // ========================================
   // Attachments (storing file names/URLs)
   attachments: [{
     type: String

@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bell, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import Profile from '../../assets/Profile.png';
-import API from '../../api';
+import Profile from '../assets/Profile.png';
+import API from '../api';
 // Helper to resolve backend relative avatar paths
 const resolveAvatarUrl = (val) => {
   if (!val) return null;
@@ -15,7 +15,7 @@ const resolveAvatarUrl = (val) => {
     return val;
   }
 };
-import Logo from '../../assets/logo.png';
+import Logo from '../assets/logo.png';
 
 const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -115,7 +115,6 @@ const Navbar = () => {
       <div className="ml-10">
         <nav className="flex sm:justify-center space-x-4">
           {[
-            ['Home', '/owner'],
             ['Dashboard', '/owner/performance'],
             ['Campaigns', '/owner/campaign-overview'],
             ['Feedback', '/owner/feedback'],

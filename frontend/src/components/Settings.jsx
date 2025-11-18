@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Navbarm from '../Marketingmanager/Navbarm';
 import Navbart from '../team member/Navbart';
-import OwnerNavbar from '../owner/homepage/OwnerNavbar';
+import OwnerNavbar from '../owner/OwnerNavbar';
 import API from '../api';
 
 const Settings = () => {

@@ -1,3 +1,10 @@
+// ========================================
+// CUSTOMER MODEL
+// ========================================
+// MongoDB schema for customer data
+// Includes purchase history, preferences, and ML-based segmentation
+// Used for campaign targeting and analytics
+
 const mongoose = require("mongoose");
 
 const customerSchema = new mongoose.Schema({

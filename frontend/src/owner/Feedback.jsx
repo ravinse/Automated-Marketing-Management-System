@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import OwnerNavbar from './homepage/OwnerNavbar';
+import OwnerNavbar from './OwnerNavbar';
 import API from '../api';
 
 const Feedback = () => {
