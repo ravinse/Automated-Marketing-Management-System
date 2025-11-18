@@ -53,7 +53,7 @@ async function runSync() {
  * Default: Runs every 1 minute
  * You can customize the schedule using cron syntax
  * 
- * @param {string} schedule - Cron expression (default: '*/1 * * * *')
+ * @param {string} schedule - Cron expression (default: every 1 minute)
  * @returns {Object} Cron task object
  */
 function startSegmentationScheduler(schedule = '*/1 * * * *') {
