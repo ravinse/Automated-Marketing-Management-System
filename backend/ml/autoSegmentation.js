@@ -1,9 +1,17 @@
+// MongoDB client for database operations
 const { MongoClient } = require('mongodb');
 require('dotenv').config();
 
+// ========================================
+// DATABASE CONFIGURATION
+// ========================================
+// MongoDB connection URI from environment variables
 const MONGODB_URI = process.env.MONGO_URI || process.env.MONGODB_URI;
+// Database name for retail operations
 const DATABASE_NAME = process.env.SEGMENTATION_DB || 'retail_db';
+// Collection containing customer orders
 const ORDERS_COLLECTION = process.env.ORDERS_COLLECTION || 'newdatabase';
+// Collection for storing customer segmentation data
 const SEGMENTATION_COLLECTION = process.env.SEGMENTATION_COLLECTION || 'customer_segmentation';
 
 /**
@@ -11,7 +19,10 @@ const SEGMENTATION_COLLECTION = process.env.SEGMENTATION_COLLECTION || 'customer
  * Automatically segments customers based on their order data using ML algorithms
  */
 
-// Calculate purchase frequency based on order history
+// ========================================
+// PURCHASE FREQUENCY CLASSIFIER
+// ========================================
+// Analyzes order history to classify customers into: New, Loyal, Lapsed, or Seasonal
 function determinePurchaseFrequency(orders, customerOrders) {
   if (!customerOrders || customerOrders.length === 0) {
     return 'New';
@@ -43,13 +54,16 @@ function determinePurchaseFrequency(orders, customerOrders) {
   }
 }
 
-// Calculate spending level based on total amount
+// ========================================
+// SPENDING LEVEL CLASSIFIER
+// ========================================
+// Calculates total and average spending to classify as: High Value, Medium Value, or Low Value
 function determineSpendingLevel(orders, customerOrders) {
   if (!customerOrders || customerOrders.length === 0) {
     return 'Low Value Customer';
   }
 
-  // Calculate total spending
+  // Calculate total spending across all orders
   const totalSpending = customerOrders.reduce((sum, order) => {
     return sum + (order.total_amount_lkr || order.order_amount || order.price_lkr || 0);
   }, 0);
@@ -71,13 +85,16 @@ function determineSpendingLevel(orders, customerOrders) {
   }
 }
 
-// Determine product category preference
+// ========================================
+// CATEGORY PREFERENCE CLASSIFIER
+// ========================================
+// Analyzes purchase patterns to identify preferred category: Mens, Womens, Kids, or Family
 function determineCategoryPreference(orders, customerOrders) {
   if (!customerOrders || customerOrders.length === 0) {
     return 'Family';
   }
 
-  // Count orders by category
+  // Count orders by product category
   const categoryCounts = {};
   
   customerOrders.forEach(order => {
@@ -116,8 +133,17 @@ function determineCategoryPreference(orders, customerOrders) {
   return topCategory ? topCategory[0] : 'Family';
 }
 
+// ========================================
+// MAIN SEGMENTATION SYNC FUNCTION
+// ========================================
 /**
  * Sync new customers from orders to segmentation
+ * Steps:
+ * 1. Connect to MongoDB and fetch all unique customers from orders
+ * 2. Check which customers already have segmentation data
+ * 3. Identify new customers that need segmentation
+ * 4. Apply ML algorithms to classify each customer
+ * 5. Store segmentation results in database
  */
 async function syncNewCustomers() {
   let client;
@@ -157,14 +183,17 @@ async function syncNewCustomers() {
       return { added: 0, skipped: 0, total: allCustomerIds.length };
     }
 
-    // Process each new customer
+    // ========================================
+    // CUSTOMER PROCESSING LOOP
+    // ========================================
+    // Apply ML segmentation to each new customer
     console.log('📋 Step 4: Segmenting new customers...\n');
     const segmentationDocuments = [];
 
     for (const customerId of newCustomerIds) {
       console.log(`   Processing customer: ${customerId}`);
       
-      // Get all orders for this customer
+      // Fetch all orders for this customer (sorted by most recent first)
       const customerOrders = await ordersCollection.find({ 
         customer_id: customerId 
       }).sort({ order_date: -1 }).toArray();
@@ -174,11 +203,12 @@ async function syncNewCustomers() {
         continue;
       }
 
-      // Apply ML segmentation logic
+      // Apply ML classification algorithms to determine customer segments
       const purchaseFrequency = determinePurchaseFrequency(ordersCollection, customerOrders);
       const spending = determineSpendingLevel(ordersCollection, customerOrders);
       const category = determineCategoryPreference(ordersCollection, customerOrders);
 
+      // Create segmentation document with classification results
       const segmentationDoc = {
         customer_id: customerId,
         segmentation: {
@@ -195,7 +225,10 @@ async function syncNewCustomers() {
       console.log(`   ✅ ${customerId}: ${purchaseFrequency} | ${spending} | ${category}`);
     }
 
-    // Insert all new segmentation documents with duplicate handling
+    // ========================================
+    // DATABASE INSERTION
+    // ========================================
+    // Insert all segmentation documents into MongoDB with duplicate handling
     let insertedCount = 0;
     let duplicateCount = 0;
     
@@ -203,7 +236,7 @@ async function syncNewCustomers() {
       console.log(`\n📋 Step 5: Inserting ${segmentationDocuments.length} new segmentation records...`);
       
       try {
-        // Use insertMany with ordered: false to continue on duplicates
+        // Bulk insert with ordered:false to continue even if some records already exist
         const result = await segmentationCollection.insertMany(segmentationDocuments, { ordered: false });
         insertedCount = result.insertedCount;
         console.log(`   ✅ Successfully inserted ${insertedCount} records`);

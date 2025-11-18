@@ -1,13 +1,22 @@
+// MongoDB client for database operations
 const { MongoClient } = require('mongodb');
 
-// MongoDB connection for segmented data
-// Use MONGO_URI or MONGODB_URI from environment variables
+// ========================================
+// DATABASE CONFIGURATION
+// ========================================
+// MongoDB connection URI from environment variables
 const MONGODB_URI = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017';
+// Database name for retail operations
 const DATABASE_NAME = process.env.SEGMENTATION_DB || 'retail_db';
+// Collection for customer segmentation data
 const COLLECTION_NAME = process.env.SEGMENTATION_COLLECTION || 'customer_segmentation';
-const ORDERS_COLLECTION = process.env.ORDERS_COLLECTION || 'newdatabase'; // Orders collection for date filtering
+// Orders collection for date filtering and enrichment
+const ORDERS_COLLECTION = process.env.ORDERS_COLLECTION || 'newdatabase';
 
-// Mapping between UI labels and database values
+// ========================================
+// SEGMENT MAPPING
+// ========================================
+// Maps frontend UI labels to database field values for querying
 const SEGMENT_MAPPING = {
   // Shopping Frequency mappings
   'New Customers': { field: 'purchase_frequency', value: 'New' },
@@ -27,7 +36,11 @@ const SEGMENT_MAPPING = {
   'Family': { field: 'category', value: 'Family' }
 };
 
-// Get all available segments with counts
+// ========================================
+// API ENDPOINT: GET AVAILABLE SEGMENTS
+// ========================================
+// Returns all segment types with customer counts for each segment
+// Used by frontend to display available segmentation options
 exports.getAvailableSegments = async (req, res) => {
   let client;
   try {
@@ -44,7 +57,8 @@ exports.getAvailableSegments = async (req, res) => {
     console.log(`📂 Using database: ${DATABASE_NAME}`);
     console.log(`📋 Collection: ${COLLECTION_NAME}`);
 
-    // Aggregate to get counts for each segment type
+    // Run aggregation pipeline to group and count customers by segment type
+    // Uses $facet to get counts for all three dimensions simultaneously
     const pipeline = [
       {
         $facet: {
@@ -93,13 +107,18 @@ exports.getAvailableSegments = async (req, res) => {
   }
 };
 
-// Get filtered customers based on selected segments
+// ========================================
+// API ENDPOINT: GET FILTERED CUSTOMERS
+// ========================================
+// Returns customer list matching selected segment criteria
+// Supports multiple segment filters and date-based filtering for new customers
 exports.getFilteredCustomers = async (req, res) => {
   let client;
   try {
     console.log('📊 [ML-Segmentation] Request received:', JSON.stringify(req.body, null, 2));
     
-    const { customerSegments, daysPeriod = 14 } = req.body; // Default to 14 days
+    // Extract request parameters (default to 14 days for "New Customers")
+    const { customerSegments, daysPeriod = 14 } = req.body;
 
     if (!customerSegments || customerSegments.length === 0) {
       console.log('⚠️  No segments selected');
@@ -123,10 +142,13 @@ exports.getFilteredCustomers = async (req, res) => {
     console.log(`📂 Using database: ${DATABASE_NAME}`);
     console.log(`📋 Collections: ${COLLECTION_NAME}, ${ORDERS_COLLECTION}`);
 
-    // Build query based on selected segments
+    // ========================================
+    // QUERY CONSTRUCTION
+    // ========================================
+    // Build MongoDB query from selected segment filters
     const filters = {};
     
-    // Calculate date threshold for "New Customers" based on daysPeriod
+    // Calculate date threshold for filtering "New Customers" (e.g., last 14 days)
     const dateThreshold = new Date();
     dateThreshold.setDate(dateThreshold.getDate() - daysPeriod);
     
@@ -148,8 +170,9 @@ exports.getFilteredCustomers = async (req, res) => {
     
     let customers = [];
     
+    // Apply date-based filtering for "New Customers" segment
     if (hasNewCustomers && daysPeriod) {
-      // Get customer IDs with recent orders (within daysPeriod)
+      // Find customers who placed orders within the specified time period
       const recentOrders = await ordersCollection.aggregate([
         {
           $match: {
@@ -184,7 +207,10 @@ exports.getFilteredCustomers = async (req, res) => {
     customers = await collection.find(query).toArray();
     console.log(`✅ Found ${customers.length} customers matching segments`);
     
-    // Enrich customer data with email and phone from orders collection
+    // ========================================
+    // CUSTOMER DATA ENRICHMENT
+    // ========================================
+    // Add email, phone, and order history from orders collection
     if (customers.length > 0) {
       console.log('📧 Enriching customer data from orders collection...');
       const customerIds = customers.map(c => c.customer_id);
@@ -251,7 +277,11 @@ exports.getFilteredCustomers = async (req, res) => {
   }
 };
 
-// Get customer details by IDs (for campaign targeting)
+// ========================================
+// API ENDPOINT: GET CUSTOMERS BY IDS
+// ========================================
+// Retrieves customer segmentation data for specific customer IDs
+// Used for campaign targeting and customer detail views
 exports.getCustomersByIds = async (req, res) => {
   let client;
   try {
@@ -293,7 +323,11 @@ exports.getCustomersByIds = async (req, res) => {
   }
 };
 
-// Preview customer count for selected segments (without fetching all data)
+// ========================================
+// API ENDPOINT: PREVIEW CUSTOMER COUNT
+// ========================================
+// Returns count of customers matching segments without fetching full data
+// Used for quick previews before creating campaigns
 exports.previewCustomerCount = async (req, res) => {
   let client;
   try {
@@ -413,7 +447,11 @@ exports.previewCustomerCount = async (req, res) => {
   }
 };
 
-// Get segmentation statistics
+// ========================================
+// API ENDPOINT: GET SEGMENTATION STATISTICS
+// ========================================
+// Returns overall statistics about customer segmentation
+// Provides distribution counts across all segment types
 exports.getSegmentationStats = async (req, res) => {
   let client;
   try {
@@ -422,8 +460,10 @@ exports.getSegmentationStats = async (req, res) => {
     const db = client.db(DATABASE_NAME);
     const collection = db.collection(COLLECTION_NAME);
 
+    // Get total customer count
     const totalCustomers = await collection.countDocuments();
 
+    // Initialize statistics object
     const stats = {
       totalCustomers,
       byFrequency: {},

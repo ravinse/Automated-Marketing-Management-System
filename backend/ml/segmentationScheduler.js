@@ -1,4 +1,6 @@
+// Cron job scheduler for automated tasks
 const cron = require('node-cron');
+// Import ML segmentation sync function
 const { syncNewCustomers } = require('./autoSegmentation');
 
 /**
@@ -7,9 +9,18 @@ const { syncNewCustomers } = require('./autoSegmentation');
  * Runs periodically to ensure all customers are segmented
  */
 
+// ========================================
+// SCHEDULER STATE
+// ========================================
+// Prevents overlapping sync operations
 let isRunning = false;
 
+// ========================================
+// SYNC EXECUTION FUNCTION
+// ========================================
+// Executes the ML segmentation sync with duplicate prevention
 async function runSync() {
+  // Skip if another sync is already running
   if (isRunning) {
     console.log('⏳ [ML-Segmentation] Sync already in progress, skipping...');
     return;
@@ -34,20 +45,29 @@ async function runSync() {
   }
 }
 
+// ========================================
+// SCHEDULER START FUNCTION
+// ========================================
 /**
  * Start the ML segmentation scheduler
  * Default: Runs every 1 minute
  * You can customize the schedule using cron syntax
+ * 
+ * @param {string} schedule - Cron expression (default: '*/1 * * * *')
+ * @returns {Object} Cron task object
  */
 function startSegmentationScheduler(schedule = '*/1 * * * *') {
   console.log('📅 ML Customer segmentation scheduler started');
   console.log(`⏰ Schedule: Every 1 minute (${schedule})`);
   console.log('🔄 The system will automatically segment new customers using ML algorithms\n');
 
-  // Run immediately on startup
+  // Execute sync immediately on startup to process any pending customers
   runSync();
 
-  // Schedule periodic runs
+  // ========================================
+  // CRON JOB CONFIGURATION
+  // ========================================
+  // Schedule periodic sync operations using cron syntax
   // Cron format: minute hour day month dayOfWeek
   // */1 * * * * = every 1 minute
   // */5 * * * * = every 5 minutes
@@ -62,8 +82,14 @@ function startSegmentationScheduler(schedule = '*/1 * * * *') {
   return task;
 }
 
+// ========================================
+// MANUAL SYNC TRIGGER
+// ========================================
 /**
  * Run sync manually (useful for API endpoints)
+ * Allows on-demand segmentation updates
+ * 
+ * @returns {Promise} Result of sync operation
  */
 async function runManualSync() {
   console.log('🔧 [ML-Segmentation] Manual sync triggered');
