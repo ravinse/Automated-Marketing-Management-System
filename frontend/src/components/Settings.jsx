@@ -28,18 +28,6 @@ const Settings = () => {
   });
   
   const [loading, setLoading] = useState(true);
-  
-  const [notifications, setNotifications] = useState({
-    emailNotifications: true,
-    campaignUpdates: true,
-    systemAlerts: false,
-    weeklyReports: true
-  });
-
-  const [security, setSecurity] = useState({
-    sessionTimeout: '30',
-    passwordExpiry: '90'
-  });
 
   // Avatar upload state
   const [avatarFile, setAvatarFile] = useState(null);
@@ -90,20 +78,6 @@ const Settings = () => {
 
   const handleUserInfoChange = (field, value) => {
     setUserInfo(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleNotificationChange = (field, value) => {
-    setNotifications(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleSecurityChange = (field, value) => {
-    setSecurity(prev => ({
       ...prev,
       [field]: value
     }));
@@ -210,8 +184,6 @@ const Settings = () => {
 
   const tabs = [
     { id: 'profile', name: 'Profile', icon: '👤' },
-    { id: 'notifications', name: 'Notifications', icon: '🔔' },
-    { id: 'security', name: 'Security', icon: '🔒' },
   ];
 
   return (
@@ -386,90 +358,6 @@ const Settings = () => {
                     )}
                   </div>
                 )}
-
-                {/* Notifications Tab */}
-                {activeTab === 'notifications' && (
-                  <div>
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-6">Notification Preferences</h2>
-                    <div className="space-y-6">
-                      {Object.entries(notifications).map(([key, value]) => (
-                        <div key={key} className="flex items-center justify-between py-3">
-                          <div>
-                            <h3 className="text-lg font-medium text-gray-900">
-                              {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                            </h3>
-                            <p className="text-gray-600 text-sm">
-                              {key === 'emailNotifications' && 'Receive email notifications for important updates'}
-                              {key === 'campaignUpdates' && 'Get notified about campaign status changes'}
-                              {key === 'systemAlerts' && 'Receive system maintenance and security alerts'}
-                              {key === 'weeklyReports' && 'Get weekly performance and analytics reports'}
-                            </p>
-                          </div>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={value}
-                              onChange={(e) => handleNotificationChange(key, e.target.checked)}
-                              className="sr-only peer"
-                            />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Security Tab */}
-                {activeTab === 'security' && (
-                  <div>
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-6">Security Settings</h2>
-                    <div className="space-y-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Session Timeout (minutes)
-                        </label>
-                        <select
-                          value={security.sessionTimeout}
-                          onChange={(e) => handleSecurityChange('sessionTimeout', e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="15">15 minutes</option>
-                          <option value="30">30 minutes</option>
-                          <option value="60">1 hour</option>
-                          <option value="120">2 hours</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Password Expiry (days)
-                        </label>
-                        <select
-                          value={security.passwordExpiry}
-                          onChange={(e) => handleSecurityChange('passwordExpiry', e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="30">30 days</option>
-                          <option value="60">60 days</option>
-                          <option value="90">90 days</option>
-                          <option value="never">Never</option>
-                        </select>
-                      </div>
-                      
-                      <div className="pt-4 border-t">
-                        <Link
-                          to="/changepass"
-                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                          Change Password
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Removed standalone Profile Image tab; integrated into Profile */}
 
                 {/* Save Button */}
                 <div className="mt-8 pt-6 border-t border-gray-200">
